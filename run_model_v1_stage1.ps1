@@ -1,7 +1,10 @@
 $ErrorActionPreference = "Stop"
 $PackageRoot = Resolve-Path $PSScriptRoot
 $WslDistribution = if ($env:MEDIROAD_WSL_DISTRIBUTION) { $env:MEDIROAD_WSL_DISTRIBUTION } else { "Ubuntu-22.04" }
-$WslPython = if ($env:MEDIROAD_WSL_PYTHON) { $env:MEDIROAD_WSL_PYTHON } else { "python3" }
+$WslPython = $env:MEDIROAD_WSL_PYTHON
+if (-not $WslPython -or $WslPython -notmatch '/bin/python$') {
+    throw 'Set MEDIROAD_WSL_PYTHON to the environment path ending in /bin/python.'
+}
 $WslRoot = "/mnt/" + $PackageRoot.Drive.Name.ToLowerInvariant() + "/" + $PackageRoot.Path.Substring(3).Replace('\', '/')
 $WslEnvPrefix = $WslPython.Substring(0, $WslPython.LastIndexOf('/bin/python'))
 

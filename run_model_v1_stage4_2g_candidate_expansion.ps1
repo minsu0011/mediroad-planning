@@ -1,7 +1,7 @@
 param(
   [string]$ProjectRoot = '.',
   [bool]$UseWsl = $true,
-  [string]$WslPython = 'python3',
+  [string]$WslPython = $env:MEDIROAD_WSL_PYTHON,
   [string]$CondaEnv = 'mediroad-stage4-2c'
 )
 $ErrorActionPreference = 'Stop'

@@ -19,4 +19,6 @@ Stage1은 특징 감사·상관·ablation·필요도 계산과 조건 검사를 
 
 후속 실행 파일은 `run_model_v1_stage2.py`, `run_model_v1_stage3.py`, `run_model_v1_stage4.py`입니다. 각 `--help`로 필요한 이전 결과와 인자를 먼저 확인합니다. Stage1 실행이 전체 방문계획을 자동 완성하지는 않습니다.
 
+PowerShell/WSL 보조 실행기는 별도 WSL 환경을 전제로 합니다. `MEDIROAD_WSL_PYTHON`에는 해당 환경의 `/bin/python`으로 끝나는 절대 경로를, Conda 자동 탐색이 필요한 실행기에는 `MEDIROAD_WSL_HOME`을 지정합니다. 위 Python 명령은 이 보조 실행기를 거치지 않습니다.
+
 연산 테스트는 `PYTHONPATH=src python -m pytest tests/test_stage1_scoring.py -q`로 구분합니다. [설정](../../configs/model_v1) · [알고리즘](Model-Evolution.md)
