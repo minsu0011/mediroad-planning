@@ -1,0 +1,3 @@
+# The user's existing CuPy installation may already satisfy this requirement.
+# Use the CUDA major version matching the installed NVIDIA driver/environment.
+cupy-cuda12x>=13,<15

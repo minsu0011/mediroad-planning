@@ -1,0 +1,650 @@
+schema_version: "1.0"
+model_version: "MEDIROAD_MODEL_V1_STAGE1"
+stage: "need_score_feature_selection"
+description: >-
+  Leakage-safe, interpretable Stage-1 feature registry for the five-axis MEDIROAD
+  Need Score. Population counts represent potential beneficiary scale, never
+  predicted patient demand. OSM travel times are static car-profile free-flow
+  estimates, not observed or real-time travel times.
+
+source:
+  master: "derived/mediroad_admin_dong_master_v6_road_integrated.csv"
+  audit: "reports/V6_FEATURE_COLUMN_AUDIT.csv"
+  expected_admin_dong_rows: 153
+  expected_master_columns: 549
+  audited_frozen_columns: 525
+  appended_osm_columns: 24
+
+feature_selection:
+  expected_active_feature_count: 30
+  default_weight_profile: "balanced_policy"
+  default_scaler: "winsorized_percentile"
+  high_correlation_review_threshold_abs_spearman: 0.90
+  missing_policy: "preserve_semantic_missingness; never unconditional-median-impute"
+  scoring_direction_rule: "after direction normalization, larger means higher need"
+  specialty_policy: "specialty-specific supply and access are deferred to Specialty Gap V1"
+  outreach_policy: "historical outreach is validation/optimizer context and never a Need Score input"
+
+axes:
+  A_demographic_vulnerability:
+    code: "A"
+    label_ko: "인구학적 취약성"
+    label_en: "Demographic Vulnerability"
+    description: "잠재 수혜 규모, 고령 강도, 고령 독거 취약성"
+  B_health_burden:
+    code: "B"
+    label_ko: "건강부담"
+    label_en: "Health Burden"
+    description: "11개 시군 CHS 고령자 건강부담 맥락; 153개 독립표본으로 취급하지 않음"
+  C_medical_supply_access_gap:
+    code: "C"
+    label_ko: "의료공급·접근공백"
+    label_en: "Medical Supply and Access Gap"
+    description: "읍면동 내 일반 의료공급과 OSM 도로망 기반 정적 접근시간"
+  D_transport_access_gap:
+    code: "D"
+    label_ko: "대중교통 접근공백"
+    label_en: "Transport Access Gap"
+    description: "최근접 정류장과 2024-03 평일 GTFS 공급 baseline"
+  E_isolation_equity:
+    code: "E"
+    label_ko: "고립·형평성"
+    label_en: "Isolation and Equity"
+    description: "읍면 여부, 인구감소지역, 저밀도 정주구조"
+
+features:
+  - feature_id: "population_65plus"
+    label_ko: "65세 이상 인구"
+    label_en: "Population aged 65 and over"
+    axis: "A_demographic_vulnerability"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "beneficiary_scale"
+    ablation_cluster: "demographic_vulnerability"
+    transform: "log1p"
+    unit: "persons"
+    value_type: "count"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "공식 주민등록 기반 잠재 수혜 고령인구 규모이며 실제 환자수나 방문자수 라벨이 아니다. 75세 이상 인구와 같은 의미그룹에서 평균해 단일 연령절단점 의존을 줄인다."
+
+  - feature_id: "population_75plus"
+    label_ko: "75세 이상 인구"
+    label_en: "Population aged 75 and over"
+    axis: "A_demographic_vulnerability"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "beneficiary_scale"
+    ablation_cluster: "demographic_vulnerability"
+    transform: "log1p"
+    unit: "persons"
+    value_type: "count"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "후기고령 잠재 수혜 규모를 나타내며 65세 이상 인구와 같은 의미그룹에서 평균하므로 연령별 규모가 중복 가중되지 않는다."
+
+  - feature_id: "population_75plus_ratio"
+    label_ko: "75세 이상 인구 비율"
+    label_en: "Share of population aged 75 and over"
+    axis: "A_demographic_vulnerability"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "advanced_age_intensity"
+    ablation_cluster: "demographic_vulnerability"
+    transform: "identity"
+    unit: "proportion"
+    value_type: "continuous"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "65·75·80·85세 이상 비율의 고상관군을 대표하는 고령강도 지표다."
+
+  - feature_id: "population_65plus_ratio"
+    label_ko: "65세 이상 인구 비율"
+    label_en: "Share of population aged 65 and over"
+    axis: "A_demographic_vulnerability"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "advanced_age_intensity"
+    ablation_cluster: "demographic_vulnerability"
+    transform: "identity"
+    unit: "proportion"
+    value_type: "continuous"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "전체 인구 중 65세 이상 인구 비율로 고령화 강도를 나타내며, 75세 이상 비율과 같은 의미그룹에서 묶어 단일 연령기준 의존성을 줄인다."
+
+  - feature_id: "single_households_65plus_per_population_65plus"
+    label_ko: "65세 이상 독거 비율"
+    label_en: "Older single-person households per population aged 65+"
+    axis: "A_demographic_vulnerability"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "older_social_isolation"
+    ablation_cluster: "demographic_vulnerability"
+    transform: "identity"
+    unit: "proportion"
+    value_type: "continuous"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "65세 이상 인구 중 고령 1인가구 비율로 사회적 돌봄 취약성을 나타낸다."
+
+  - feature_id: "single_households_75plus_per_population_75plus"
+    label_ko: "75세 이상 독거 비율"
+    label_en: "Single-person households aged 75+ per population aged 75+"
+    axis: "A_demographic_vulnerability"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "older_social_isolation"
+    ablation_cluster: "demographic_vulnerability"
+    transform: "identity"
+    unit: "proportion"
+    value_type: "continuous"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "75세 이상 인구 대비 75세 이상 1인가구 비율로 후기고령층의 독거·돌봄 취약성을 나타내며, 65세 이상 독거 비율과 같은 의미그룹에서 함께 평가한다."
+
+  - feature_id: "chs65p_depressive_experience_pct"
+    label_ko: "65세 이상 우울감 경험률"
+    label_en: "Depressive experience among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "mental_self_rated_health_burden"
+    ablation_cluster: "health_mental_self_rated_burden"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "CHS 2023~2025 고령자 정신건강 맥락이며 유효 독립 단위는 11개 정책 시군이다."
+
+  - feature_id: "chs65p_diabetes_doctor_dx_pct"
+    label_ko: "65세 이상 당뇨병 의사진단율"
+    label_en: "Physician-diagnosed diabetes among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "chronic_disease_burden"
+    ablation_cluster: "health_chronic_disease"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "CHS 고령자 당뇨병 의사진단 경험의 시군 수준 건강부담 맥락이다."
+
+  - feature_id: "chs65p_hypertension_doctor_dx_pct"
+    label_ko: "65세 이상 고혈압 의사진단율"
+    label_en: "Physician-diagnosed hypertension among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "chronic_disease_burden"
+    ablation_cluster: "health_chronic_disease"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "CHS 고령자 고혈압 의사진단 경험의 시군 수준 건강부담 맥락이다."
+
+  - feature_id: "chs65p_mobility_any_problem_pct"
+    label_ko: "65세 이상 이동성 문제율"
+    label_en: "Mobility problem among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "functional_limitation_burden"
+    ablation_cluster: "functional_limitation_burden"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "이동기능 제약을 나타내며 일상활동 문제율과 같은 기능제한 의미그룹에서 평균한다."
+
+  - feature_id: "chs65p_usual_activity_any_problem_pct"
+    label_ko: "65세 이상 일상활동 문제율"
+    label_en: "Usual-activity limitation among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "functional_limitation_burden"
+    ablation_cluster: "functional_limitation_burden"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "일상활동 제약의 시군 수준 CHS 맥락이며 이동성 문제율과 함께 기능부담을 보완 측정한다."
+
+  - feature_id: "chs65p_subjective_health_poor_pct"
+    label_ko: "65세 이상 주관적 건강 나쁨 비율"
+    label_en: "Poor self-rated health among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "mental_self_rated_health_burden"
+    ablation_cluster: "health_mental_self_rated_burden"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "주관적 건강 나쁨을 엄격 기준으로 측정한 시군 수준 CHS 지표다."
+
+  - feature_id: "chs65p_unmet_medical_need_among_needing_pct"
+    label_ko: "진료 필요 고령자 미충족 의료율"
+    label_en: "Unmet medical need among older adults needing care"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "care_access_experience_burden"
+    ablation_cluster: "care_access_experience_burden"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "진료 필요에도 이용하지 못한 경험을 나타내며 의료환경 불만족과 같은 진료접근 경험 의미그룹에서 평균한다."
+
+  - feature_id: "chs65p_medical_environment_dissatisfaction_pct"
+    label_ko: "65세 이상 의료환경 불만족률"
+    label_en: "Medical-environment dissatisfaction among adults aged 65+"
+    axis: "B_health_burden"
+    direction: "+"
+    granularity: "policy_sigungu_repeated_on_admin_dong"
+    proxy: false
+    semantic_group: "care_access_experience_burden"
+    ablation_cluster: "care_access_experience_burden"
+    transform: "identity"
+    unit: "percent"
+    value_type: "continuous"
+    missing_semantics: "complete_required_at_11_sigungu"
+    confidence: "medium_group_context"
+    description: "의료환경에 대한 불만족의 시군 수준 CHS 맥락이며 미충족 의료와 함께 진료접근 경험을 보완 측정한다."
+
+  - feature_id: "medical_facility_count_local_per_1000_elderly"
+    label_ko: "고령인구 1천명당 비약국 의료기관 수"
+    label_en: "Non-pharmacy medical facilities per 1,000 older residents"
+    axis: "C_medical_supply_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "general_supply_breadth"
+    ablation_cluster: "medical_local_supply"
+    transform: "log1p"
+    unit: "facilities_per_1000_older_residents"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required; zero_means_no_recorded_local_supply"
+    confidence: "high"
+    description: "읍면동 내부 비약국 일반 의료기관 공급의 폭을 나타내며 많을수록 의료공백이 작다."
+
+  - feature_id: "doctor_count_local_per_1000_elderly"
+    label_ko: "고령인구 1천명당 의사 수"
+    label_en: "Doctors per 1,000 older residents"
+    axis: "C_medical_supply_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "medical_workforce_supply"
+    ablation_cluster: "medical_local_supply"
+    transform: "log1p"
+    unit: "doctors_per_1000_older_residents"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required; zero_means_no_recorded_local_supply"
+    confidence: "high"
+    description: "전체 의사 공급을 나타내며 전문의 수와 같은 의료인력 의미그룹에서 평균해 단일 인력정의 의존을 줄인다."
+
+  - feature_id: "medical_specialist_count_local_per_1000_elderly"
+    label_ko: "고령인구 1천명당 전문의 수"
+    label_en: "Medical specialists per 1,000 older residents"
+    axis: "C_medical_supply_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "medical_workforce_supply"
+    ablation_cluster: "medical_local_supply"
+    transform: "log1p"
+    unit: "specialists_per_1000_older_residents"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required; zero_means_no_recorded_local_supply"
+    confidence: "high"
+    description: "전문의 공급을 나타내며 전체 의사 수와 같은 의미그룹에서 평균하므로 의료인력이 중복 가중되지 않는다."
+
+  - feature_id: "hospital_level_count_local_per_1000_elderly"
+    label_ko: "고령인구 1천명당 병원급 기관 수"
+    label_en: "Hospital-level facilities per 1,000 older residents"
+    axis: "C_medical_supply_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "hospital_level_availability"
+    ablation_cluster: "medical_hospital_supply_access"
+    transform: "log1p"
+    unit: "facilities_per_1000_older_residents"
+    value_type: "zero_inflated_rate"
+    missing_semantics: "complete_required; zero_means_no_recorded_local_hospital_level_supply"
+    confidence: "medium_high_zero_inflated"
+    description: "병원급 공급의 지역 내 존재를 반영하며 다수의 0은 결측이 아니라 실제 미기록 공급 0이다."
+
+  - feature_id: "osm_nearest_medical_any_drive_min_v6"
+    label_ko: "OSM 최근접 비약국 의료기관 정적 주행시간"
+    label_en: "OSM static drive time to nearest non-pharmacy medical facility"
+    axis: "C_medical_supply_access_gap"
+    direction: "+"
+    granularity: "admin_dong_centroid_to_hira_facility_network"
+    proxy: true
+    semantic_group: "primary_public_network_access"
+    ablation_cluster: "general_medical_network_access"
+    transform: "log1p"
+    unit: "minutes"
+    value_type: "continuous"
+    missing_semantics: "complete_required_after_road_reachability_gate"
+    confidence: "medium_modelled_static_free_flow"
+    description: "OSM 정적 car-profile free-flow 추정치이며 실제·실시간 또는 이동진료 차량 관측시간이 아니다."
+
+  - feature_id: "osm_nearest_hospital_level_drive_min_v6"
+    label_ko: "OSM 최근접 병원급 기관 정적 주행시간"
+    label_en: "OSM static drive time to nearest hospital-level facility"
+    axis: "C_medical_supply_access_gap"
+    direction: "+"
+    granularity: "admin_dong_centroid_to_hira_facility_network"
+    proxy: true
+    semantic_group: "hospital_level_availability"
+    ablation_cluster: "medical_hospital_supply_access"
+    transform: "log1p"
+    unit: "minutes"
+    value_type: "continuous"
+    missing_semantics: "complete_required_after_road_reachability_gate"
+    confidence: "medium_modelled_static_free_flow"
+    description: "병원급 기관에 대한 정적 OSM 네트워크 접근시간 proxy다."
+
+  - feature_id: "osm_nearest_public_health_drive_min_v6"
+    label_ko: "OSM 최근접 공공보건기관 정적 주행시간"
+    label_en: "OSM static drive time to nearest public-health facility"
+    axis: "C_medical_supply_access_gap"
+    direction: "+"
+    granularity: "admin_dong_centroid_to_hira_facility_network"
+    proxy: true
+    semantic_group: "primary_public_network_access"
+    ablation_cluster: "public_health_network_access"
+    transform: "log1p"
+    unit: "minutes"
+    value_type: "continuous"
+    missing_semantics: "complete_required_after_road_reachability_gate"
+    confidence: "medium_modelled_static_free_flow"
+    description: "보건소·보건지소·보건진료소 등 공공보건 안전망에 대한 정적 OSM 접근시간 proxy다."
+
+  - feature_id: "nearest_bus_stop_straight_km"
+    label_ko: "최근접 버스정류장 직선거리"
+    label_en: "Straight-line distance to nearest bus stop"
+    axis: "D_transport_access_gap"
+    direction: "+"
+    granularity: "admin_dong_centroid_to_bus_stop"
+    proxy: true
+    semantic_group: "physical_stop_access"
+    ablation_cluster: "transport_stop_coverage"
+    transform: "log1p"
+    unit: "kilometres"
+    value_type: "continuous"
+    missing_semantics: "complete_required"
+    confidence: "medium_distance_proxy"
+    description: "행정동 중심점 기준 직선거리이며 실제 보행거리나 도로 이동거리가 아니다."
+
+  - feature_id: "gtfs_stops_with_service"
+    label_ko: "평일 운행 확인 GTFS 정류장 수"
+    label_en: "GTFS stops with weekday service"
+    axis: "D_transport_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "scheduled_stop_coverage"
+    ablation_cluster: "transport_stop_coverage"
+    transform: "log1p"
+    unit: "stops"
+    value_type: "count"
+    missing_semantics: "complete_required; zero_means_no_gtfs_service_record_in_baseline"
+    confidence: "medium_2024_schedule_baseline"
+    description: "2024-03 KTDB 평일 스케줄에서 운행이 연결된 정류장 수이며 현재 실시간 운행정보가 아니다."
+
+  - feature_id: "gtfs_weekday_departures_per_1000_elderly"
+    label_ko: "고령인구 1천명당 평일 GTFS 출발횟수"
+    label_en: "Weekday GTFS departures per 1,000 older residents"
+    axis: "D_transport_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "scheduled_service_volume"
+    ablation_cluster: "transport_service_availability"
+    transform: "log1p"
+    unit: "departure_events_per_1000_older_residents"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required"
+    confidence: "medium_2024_schedule_baseline"
+    description: "고령인구 규모에 대비한 2024-03 평일 계획 운행 공급량이다."
+
+  - feature_id: "gtfs_routes_per_1000_elderly"
+    label_ko: "고령인구 1천명당 평일 GTFS 노선 수"
+    label_en: "Weekday GTFS routes per 1,000 older residents"
+    axis: "D_transport_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "scheduled_route_diversity"
+    ablation_cluster: "transport_service_availability"
+    transform: "log1p"
+    unit: "routes_per_1000_older_residents"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required"
+    confidence: "medium_2024_schedule_baseline"
+    description: "고령인구 규모에 대비한 평일 노선 다양성으로 분모 효과를 이탈검사한다."
+
+  - feature_id: "gtfs_departure_events_per_served_stop"
+    label_ko: "운행 정류장당 평일 GTFS 출발횟수"
+    label_en: "Weekday GTFS departures per served stop"
+    axis: "D_transport_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "scheduled_service_intensity"
+    ablation_cluster: "transport_service_availability"
+    transform: "log1p"
+    unit: "departure_events_per_served_stop"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required"
+    confidence: "medium_2024_schedule_baseline"
+    description: "운행 정류장당 계획 서비스 강도이며 저밀도·첫차 지표와의 상관을 별도 감시한다."
+
+  - feature_id: "gtfs_first_departure_hour"
+    label_ko: "평일 GTFS 첫차 시각"
+    label_en: "First weekday GTFS departure hour"
+    axis: "D_transport_access_gap"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "scheduled_service_span"
+    ablation_cluster: "transport_service_span"
+    transform: "identity"
+    unit: "hour_of_day"
+    value_type: "continuous_time"
+    missing_semantics: "complete_required"
+    confidence: "medium_2024_schedule_baseline"
+    description: "첫차가 늦을수록 오전 의료이용 접근공백이 커지는 방향으로 사용한다."
+
+  - feature_id: "gtfs_last_departure_hour"
+    label_ko: "평일 GTFS 막차 시각"
+    label_en: "Last weekday GTFS departure hour"
+    axis: "D_transport_access_gap"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "scheduled_service_span"
+    ablation_cluster: "transport_service_span"
+    transform: "identity"
+    unit: "hour_of_day"
+    value_type: "continuous_time"
+    missing_semantics: "complete_required"
+    confidence: "medium_2024_schedule_baseline"
+    description: "막차가 늦을수록 이용 가능시간이 길어 접근공백이 작아지는 방향으로 사용한다."
+
+  - feature_id: "is_rural_eup_myeon"
+    label_ko: "읍·면 지역 여부"
+    label_en: "Rural eup or myeon indicator"
+    axis: "E_isolation_equity"
+    direction: "+"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "rurality"
+    ablation_cluster: "rurality"
+    transform: "identity"
+    unit: "binary_flag"
+    value_type: "binary"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "행정유형에 따른 농촌성을 나타내며 기존 감사의 인구축에서 형평성축으로 재배치한다."
+
+  - feature_id: "population_density_per_km2"
+    label_ko: "인구밀도"
+    label_en: "Population density"
+    axis: "E_isolation_equity"
+    direction: "-"
+    granularity: "admin_dong"
+    proxy: false
+    semantic_group: "settlement_sparsity"
+    ablation_cluster: "settlement_sparsity"
+    transform: "log1p"
+    unit: "persons_per_square_kilometre"
+    value_type: "continuous_rate"
+    missing_semantics: "complete_required"
+    confidence: "high"
+    description: "저밀도 정주구조의 고립 가능성을 나타내며 읍·면 여부와 같은 하위그룹에서 중복 가중을 제한한다."
+
+substitutions:
+  - selected_feature: "chs65p_subjective_health_poor_pct"
+    shadow_feature: "chs65p_subjective_health_not_good_pct"
+    direction: "+"
+    transform: "identity"
+    reason: "주관적 건강의 엄격 기준(poor)을 넓은 기준(not good)으로 교체하는 정의 민감도 검사"
+  - selected_feature: "gtfs_stops_with_service"
+    shadow_feature: "gtfs_stop_count"
+    direction: "-"
+    transform: "log1p"
+    reason: "운행 확인 정류장과 전체 GTFS 정류장의 완전중복 여부를 재확인하는 단일 대체 검사"
+  - selected_feature: "gtfs_stops_with_service"
+    shadow_feature: "static_bus_stop_count"
+    direction: "-"
+    transform: "log1p"
+    reason: "GTFS 운행 정류장 수를 동일 count 단위의 정적 정류장 수로 바꾸는 coverage 민감도 검사"
+  - selected_feature: "osm_nearest_medical_any_drive_min_v6"
+    shadow_feature: "nearest_medical_drive_min_proxy"
+    direction: "+"
+    transform: "log1p"
+    reason: "OSM 일반 의료 접근시간을 구형 직선거리 기반 주행시간 근사치로 교체하는 도로모형 민감도 검사"
+  - selected_feature: "osm_nearest_hospital_level_drive_min_v6"
+    shadow_feature: "nearest_hospital_drive_min_proxy"
+    direction: "+"
+    transform: "log1p"
+    reason: "OSM 병원급 접근시간을 대응 구형 접근시간 근사치로 교체하는 도로모형 민감도 검사"
+  - selected_feature: "osm_nearest_public_health_drive_min_v6"
+    shadow_feature: "nearest_public_health_drive_min_proxy"
+    direction: "+"
+    transform: "log1p"
+    reason: "OSM 공공보건 접근시간을 대응 구형 접근시간 근사치로 교체하는 도로모형 민감도 검사"
+
+weight_profiles:
+  balanced_policy:
+    label_ko: "균형 정책형"
+    description: "건강·인구·교통·형평성과 의료공백을 균형 있게 반영하는 기본 프로필"
+    weights:
+      A_demographic_vulnerability: 0.20
+      B_health_burden: 0.20
+      C_medical_supply_access_gap: 0.25
+      D_transport_access_gap: 0.20
+      E_isolation_equity: 0.15
+  elderly_priority:
+    label_ko: "고령취약 우선형"
+    description: "잠재 수혜 고령인구와 고령구조를 우선하는 민감도 프로필"
+    weights:
+      A_demographic_vulnerability: 0.35
+      B_health_burden: 0.20
+      C_medical_supply_access_gap: 0.20
+      D_transport_access_gap: 0.15
+      E_isolation_equity: 0.10
+  medical_gap_priority:
+    label_ko: "의료공백 우선형"
+    description: "의료공급과 도로 접근공백을 가장 크게 반영하는 프로필"
+    weights:
+      A_demographic_vulnerability: 0.15
+      B_health_burden: 0.20
+      C_medical_supply_access_gap: 0.40
+      D_transport_access_gap: 0.15
+      E_isolation_equity: 0.10
+  access_priority:
+    label_ko: "접근성 우선형"
+    description: "의료 접근과 대중교통 접근을 함께 우선하는 프로필"
+    weights:
+      A_demographic_vulnerability: 0.15
+      B_health_burden: 0.15
+      C_medical_supply_access_gap: 0.30
+      D_transport_access_gap: 0.30
+      E_isolation_equity: 0.10
+  equal_subscore_baseline:
+    label_ko: "5축 동일가중 기준선"
+    description: "정책 가중치와 비교하기 위한 설명 가능한 동일가중 기준선"
+    weights:
+      A_demographic_vulnerability: 0.20
+      B_health_burden: 0.20
+      C_medical_supply_access_gap: 0.20
+      D_transport_access_gap: 0.20
+      E_isolation_equity: 0.20
+
+scalers:
+  robust_zscore:
+    label_ko: "강건 Z 점수"
+    method: "median_mad_zscore"
+    parameters:
+      center: "median"
+      scale: "1.4826_times_mad"
+      clip_lower: -3.0
+      clip_upper: 3.0
+      output_range: [0.0, 100.0]
+    description: "중앙값과 MAD를 사용하고 극단 Z값을 절단한다."
+  winsorized_percentile:
+    label_ko: "윈저화 백분위"
+    method: "winsorize_then_empirical_percentile"
+    parameters:
+      lower_quantile: 0.01
+      upper_quantile: 0.99
+      tie_method: "average"
+      output_range: [0.0, 100.0]
+    description: "1·99백분위에서 절단한 뒤 경험 백분위로 변환하는 기본 scaler다."
+  rank_percentile:
+    label_ko: "순위 백분위"
+    method: "average_rank_percentile"
+    parameters:
+      tie_method: "average"
+      output_range: [0.0, 100.0]
+    description: "분포 형태와 극단값에 가장 강건한 순위 민감도 scaler다."
+  robust_minmax:
+    label_ko: "강건 Min-Max"
+    method: "quantile_clipped_minmax"
+    parameters:
+      lower_quantile: 0.05
+      upper_quantile: 0.95
+      clip: true
+      output_range: [0.0, 100.0]
+    description: "5·95백분위를 기준으로 범위를 제한한 설명 가능한 Min-Max scaler다."

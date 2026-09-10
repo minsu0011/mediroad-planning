@@ -1,0 +1,248 @@
+version: MEDIROAD_MODEL_V1_STAGE3_SPATIAL_20260819
+status: post_diagnostic_hardening_frozen_before_final_rerun
+stage_scope: Stage3A_grid_exposure_Stage3B_venue_context_Stage3C_spatial_integration_only
+target_definition: potential_elderly_beneficiary_geographic_coverage_not_patient_demand_or_actual_service_area
+random_seed: 20260819
+stage3_started: true
+stage4_started: false
+
+paths:
+  frozen_canonical_master: derived/mediroad_admin_dong_master_v6_final.csv
+  road_integrated_master: derived/mediroad_admin_dong_master_v6_road_integrated.csv
+  stage1_need_scores: outputs/model_v1/03_ablation/stage1_primary_need_score.csv
+  stage2a_bundle_scores: outputs/model_v1/04_specialty/recommended_bundle_gap_scores.parquet
+  stage2a_specialty_scores: outputs/model_v1/04_specialty/specialty_gap_scores.parquet
+  stage2b_interface: outputs/model_v1/05_stage2b_hardening/stage2_to_stage3_interface.parquet
+  stage2_inventory: outputs/model_v1/04_stage2/STAGE2_ARTIFACT_INVENTORY.csv
+  stage2b_inventory: outputs/model_v1/05_stage2b_hardening/STAGE2B_HARDENING_ARTIFACT_INVENTORY.csv
+  stage1_run_metadata: outputs/model_v1/RUN_METADATA.json
+  stage2_run_metadata: outputs/model_v1/04_stage2/STAGE2_RUN_METADATA.json
+  stage2b_run_metadata: outputs/model_v1/05_stage2b_hardening/STAGE2B_HARDENING_RUN_METADATA.json
+  stage2b_iteration2_metadata: outputs/model_v1/06_stage2b_iteration2/runs/stage2b_iteration2_20260818T144726Z_373d67516fe5/STAGE2B_ITERATION2_RUN_METADATA.json
+  stage2b_iteration2_inventory: outputs/model_v1/06_stage2b_iteration2/runs/stage2b_iteration2_20260818T144726Z_373d67516fe5/STAGE2B_ITERATION2_ARTIFACT_INVENTORY.csv
+  grid_gpkg: 06_population_grid/ngii_elderly_100m_202410/derived/chungbuk_elderly_100m_calibrated_points_v6.gpkg
+  grid_csv: 06_population_grid/ngii_elderly_100m_202410/derived/chungbuk_elderly_100m_calibrated_points_v6.csv.gz
+  venues: 08_candidate_venues/candidate_venues_model_ready_final_v6.csv
+  venue_road_context: 14_v6_external_data/road_network/derived/candidate_venues_osm_routing_v6.csv
+  static_bus_stops: 03_spatial_join/chungbuk_bus_stops_by_admin_dong_20251209.csv
+  current_bus_structure: 14_v6_external_data/molit_bus_2026/chungbuk_bus_stops_api_20260722_admin_mapped_v6.csv
+  gtfs_stop_service: 04_gtfs/derived/chungbuk_gtfs_stop_service_202403.csv
+  admin_boundaries: 02_boundaries/chungbuk_admin_dong_2025Q2.gpkg
+  service_bundle_config: configs/model_v1/service_bundles.yaml
+  output_root: outputs/model_v1/07_stage3
+  report_root: reports/model_v1/stage3
+  current_report: reports/model_v1/07_stage3_spatial_exposure_venue.md
+
+frozen_contract:
+  canonical_master_sha256: 3bcff13063c741edf1492df22b774bd6d37424d729c15423e31ba8ea576adf7a
+  road_integrated_master_sha256: faed8c4d024dfff89602eebf3229c1eaeea955ca2d14fb88f0e2cbc4f76e078a
+  stage1_need_scores_sha256: 6302576c3f15d7ae0d18ecb5d4ad39a35f3fe33cd5ef3b20d1608b2a112d6ab2
+  stage2a_bundle_scores_sha256: 43cddc29bbfc9f82c0031e35042c8e90fd8ef35e31c276611f56d0db5d65d2fa
+  stage2a_specialty_scores_sha256: 78157d7f0fad75b7b714c84ca31b2c5bce977555f154d5ce21e8ddc4296f44aa
+  stage2b_interface_sha256: 5c0179eb376087959c93b3ac42a08119682ecc77de8da338d18e703e5f1f9b39
+  stage2_inventory_sha256: 7d128b13fdb72884b1457f3725606fb8cd3cac744eeb95b9888d2ad273ead250
+  stage2b_inventory_sha256: afc64203da615eeefb7d74f8e4b621c636f03ef018ce5383ea784e900f06d57b
+  stage1_run_metadata_sha256: 7256a9121e7f218a6af44c27d86cd3e0c2dbe329b393bb3965a8f3f8fde0d434
+  stage2_run_metadata_sha256: 38d8f64d5360939ec812d438b2720930cd2923e8f115d5b947b48e8440d6b94f
+  stage2b_run_metadata_sha256: 041adecc7044a60dfc2ef87f5a308f0472cd72078bed4ac407a223a499c01cb5
+  stage2b_iteration2_metadata_sha256: c130c95bc5ce670e3c81566ce6f9e6e11031a2d0ebc6f6078a125114f7ce5549
+  stage2b_iteration2_inventory_sha256: 53c5fba2c73fe2717a145a201fc51b0c2a4b5010386897b96e8c2db0506d8563
+  grid_gpkg_sha256: 3c2434552bc6faba8ca911c8fcf76ceb1e7cb0a7ba588f7809e10b374a27b63b
+  grid_csv_sha256: 57b776b36d2afb42e377dee30693a43341e785521697818e97d44e5bdb3e36d2
+  venues_sha256: cde14c2f83915726d30c9ac253a6b2ad6a32e21e11b7b978fe33cb4606d226c7
+  venue_road_context_sha256: a7b215321ae8140df55238912c073f06be244c62eadf05f8b3c702cf0d8266c4
+  static_bus_stops_sha256: f2bb3ee46c6001aa616bf1c5d98a1f1cbb7810062daa8d940db5887b31feccdf
+  current_bus_structure_sha256: 3120186432ff442afeba7f6785fe202c0059f4f433410ec06b45c881ed96433c
+  gtfs_stop_service_sha256: d97b3d2bf34675100c80a44d44b406340227594f1bbe8acdaf998ab4a1c04eb6
+  admin_boundaries_sha256: 31c8b68ccdb94a6f7f7d0cce7e54d377b0c76efcd35cb71dea40efc09ab7771e
+  service_bundle_config_sha256: 64f80d6b5f53982808f35fd84cb04792964e3cd4e55839edf4efb8c15afea0d1
+
+analysis_contract:
+  expected_admin_dongs: 153
+  expected_policy_sigungu: 11
+  expected_grid_rows: 58311
+  expected_input_venue_rows: 3938
+  expected_eligible_venue_rows: 3909
+  expected_out_of_boundary_exclusions: 29
+  outside_venue_id_set_sha256: 86d563b1f8e0cd1494e8270de67375353b5a5a76c35f71498ca0832b61f0a084
+  eligible_venue_id_set_sha256: 16cbf740a123c51e78c69621cfb0324b7d36458f32629926d0b8eff5c2cb7f54
+  eligible_sigungu_source_mismatch_count: 45
+  eligible_sigungu_mismatch_id_set_sha256: b25044a7a03a08bd57080e9beb3fca3f735dbf6b19dd47812e930637323742b3
+  expected_bundles: 5
+  expected_interface_rows: 19545
+  metric_crs: EPSG:5179
+  grid_role: population_mass_spatial_allocation_unit_not_independent_sample
+  venue_role: candidate_physical_location_not_verified_operational_site
+  primary_population: elderly65_calibrated_population
+  primary_exposure_method: hard_5000m
+  high_need_admin_quantile: 0.80
+  quadrant_quantile: 0.50
+  temporal_role: provenance_only_not_primary_selector
+  exact_month_must_be_null: true
+  exact_date_must_be_null: true
+  stage4_execution_forbidden: true
+
+catchments:
+  hard_radii_m: [1000, 3000, 5000, 10000]
+  decay_methods: [exponential, gaussian]
+  decay_scales_m: [1000, 3000, 5000]
+  decay_max_distance_m: 10000
+  matrix_dtype_hard: uint8
+  matrix_dtype_decay: float32
+  deterministic_venue_order: venue_id_ascending
+  deterministic_grid_order: grid_point_index_ascending
+  dense_distance_matrix_forbidden: true
+
+overlap:
+  primary_matrix: hard_5000m
+  candidate_pair_center_distance_max_m: 10000
+  output_min_jaccard: 0.15
+  output_min_weighted_overlap_share: 0.15
+  cluster_jaccard_min: 0.80
+  fallback_jaccard_min: 0.60
+  fallback_center_distance_max_m: 5000
+
+transit_context:
+  static_bus_reference: 2025-12-09_coordinate_snapshot
+  current_bus_reference: 2026-07-22_structure_without_coordinates
+  gtfs_reference: 2024-03_service_baseline
+  nearby_radius_m: 1000
+  current_bus_distance_status: unavailable_source_has_no_coordinates
+
+readiness_prior:
+  default: 0.30
+  operational_suitability_verified: 0.95
+  previous_operation_evidence: 0.90
+  public_health_or_outreach: 0.82
+  official_dementia: 0.75
+  official_village_or_senior: 0.60
+  official_location: 0.55
+  bus_stop_name_proxy: 0.30
+  interpretation: facility_type_readiness_prior_not_operational_feasibility
+  field_validation_fields:
+    - parking_verified
+    - power_verified
+    - indoor_waiting_verified
+    - toilet_verified
+    - vehicle_access_verified
+    - equipment_space_verified
+
+shortlist:
+  pareto_definition: strict_raw_objective_dominance_primary
+  coarse_policy_screen_definition: within_admin_3_bin_ordinal_same_objectives_no_weighted_sum
+  pareto_quantile_bins: 3
+  pareto_quantile_bin_sensitivity: [2, 3, 4, 5]
+  exact_raw_pareto_retained_as_primary: true
+  pareto_metrics_higher:
+    - raw_elderly_exposure
+    - need_weighted_exposure
+    - high_need_elderly_exposure
+    - mean_bundle_gap_weighted_exposure
+    - venue_readiness_prior
+    - transit_context_score
+  pareto_metrics_lower:
+    - field_validation_unknown_count
+    - overlap_weighted_degree
+  per_admin_top_n: [3, 5]
+  field_validation_top_n_per_admin: 3
+  retain_all_candidates_in_interface: true
+  dominated_candidates_flag_only: true
+
+sensitivity:
+  reference_method: hard_5000m
+  compare_methods:
+    - hard_1000m
+    - hard_3000m
+    - hard_10000m
+    - exp_1000m
+    - exp_3000m
+    - exp_5000m
+    - gaussian_1000m
+    - gaussian_3000m
+    - gaussian_5000m
+  top_k: [3, 5]
+  calibration_shadow: published_observed_positive_cells_only_excluding_suppressed_cells
+  own_admin_only_shadow: true
+
+quality_gates:
+  frozen_artifact_mutation_count_max: 0
+  grid_rows_exact: 58311
+  grid_id_duplicate_max: 0
+  grid_geometry_invalid_max: 0
+  grid_population_negative_max: 0
+  grid_population_missing_max: 0
+  grid_admin_count_exact: 153
+  grid_calibration_admin_max_abs_error: 0.00000001
+  venue_input_rows_exact: 3938
+  venue_eligible_rows_exact: 3909
+  venue_out_of_boundary_exclusion_rows_exact: 29
+  venue_eligible_out_of_boundary_max: 0
+  venue_eligible_sigungu_source_mismatch_exact: 45
+  venue_resolved_sigungu_mismatch_max: 0
+  venue_id_duplicate_max: 0
+  venue_location_id_duplicate_max: 0
+  venue_coordinate_duplicate_max: 0
+  venue_coordinate_invalid_max: 0
+  venue_admin_count_exact: 153
+  matrix_shape_exact: [3909, 58311]
+  matrix_count_exact: 10
+  exposure_nonfinite_max: 0
+  exposure_negative_max: 0
+  hard_radius_monotonic_violation_max: 0
+  decay_weight_below_zero_max: 0
+  decay_weight_above_one_max: 0
+  cross_boundary_positive_venue_min: 1
+  unique_union_exceeds_naive_sum_max: 0
+  bundle_rows_exact: 19545
+  interface_rows_exact: 19545
+  interface_key_duplicate_max: 0
+  interface_forbidden_stage4_column_max: 0
+  interface_recommended_season_nonnull_max: 0
+  interface_fallback_season_nonnull_max: 0
+  interface_exact_month_nonnull_max: 0
+  interface_exact_date_nonnull_max: 0
+  temporal_primary_selector_count_max: 0
+  current_bus_distance_status_mismatch_max: 0
+  current_bus_numeric_distance_column_max: 0
+  admin_shortlist_coverage_exact: 153
+  field_validation_queue_admin_coverage_exact: 153
+  fallback_venue_1_coverage_exact: 3909
+  coverage_cluster_min_pairwise_jaccard: 0.80
+  correlation_all_venue_pairwise_n_exact: 3909
+  correlation_admin_collapsed_pairwise_n_exact: 153
+  correlation_nonfinite_cell_max: 0
+  correlation_symmetry_max_abs_error: 0.000000000001
+  correlation_diagonal_max_abs_error: 0.000000000001
+  discriminating_constant_metric_max: 0
+  discriminating_abs_rho_095_pairs_max: 2
+  discriminating_exact_duplicate_pairs_max: 0
+  coarse_policy_pareto_front_share_advisory_max: 0.40
+  bundle_sensitivity_executed_rows_exact: 50
+  pareto_objective_loo_classified_rows_exact: 8
+  pareto_objective_loo_executed_rows_exact: 7
+  pareto_objective_loo_not_identifiable_rows_exact: 1
+  shortlist_tie_breaker_loo_classified_rows_exact: 4
+  shortlist_tie_breaker_loo_executed_rows_exact: 3
+  shortlist_tie_breaker_loo_not_identifiable_rows_exact: 1
+  sensitivity_scope_missing_max: 0
+  full_identity_sensitivity_rows_exact: 1
+  stage3_tests_passed_min: 1
+  stage4_started_must_equal: false
+  tests_must_pass: true
+  artifact_sha_mismatch_count_max: 0
+
+reporting:
+  png_dpi: 300
+  svg_required: true
+  html_self_contained: true
+  korean_font_fail_closed: true
+  all_venue_correlation_is_descriptive: true
+  admin_collapsed_correlation_required: true
+
+execution:
+  jobs: 8
+  single_writer_lock: true
+  run_scoped_output: true
+  atomic_metadata_last: true
+  memory_limit_advisory_gib: 24
+  stage4_started: false

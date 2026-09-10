@@ -1,0 +1,177 @@
+version: MEDIROAD_STAGE4_2D_EQUITY_EXACT_CERTIFICATION_DIAGNOSTIC_V1
+mode: diagnostic
+stage5_started: false
+paths:
+  output_root: outputs/model_v1/10_stage4_2d_equity_certification_diagnostic
+  report_root: reports/model_v1/stage4_2d_equity_certification_diagnostic
+  lock: outputs/model_v1/.stage4_2d_equity_certification_diagnostic_writer.lock
+hardware:
+  profile: intel_core_ultra_7_258v_32gb_rtx_3080ti
+  solver_threads: 8
+  portfolio_workers: 8
+  threads_per_portfolio_worker: 1
+  memory_soft_limit_gb: 27
+  gpu_lns: true
+  gpu_memory_fraction: 0.80
+  process_priority: above_normal
+contract:
+  candidate_set: top3
+  visit_count: 20
+  preserve_stage42c_objectives: true
+  preserve_stage42c_constraints: true
+  preserve_candidate_universe: true
+  preserve_retention_rates: true
+  min_sigungu_retention: 1.0
+  high_need_retention: 0.99
+  candidate_expansion_enabled: false
+evidence:
+  preferred_stage42c_run_id: stage4_2c_certification_20260820T151657Z_56c5f1bad35c
+  preferred_artifact_sha256:
+    ARTIFACT_INVENTORY.csv: c1198cd711730871538ff536614f724ea64ee2634ced21d1aa9d144b00a74362
+    metadata.json: d420d1d90439b22d473c4bc164dbf6198fd9f03331465db6c9cbc2e32adfc259
+    quality_gate.json: 447546723cfe6615f4d89b21cf104beeb4037ca239b59173cdfa92491f70946a
+    candidate_problem_summary.csv: aa5d76bff7cd4242828b59e1ba6c315e010fa44a087dd2e35adabd703bb79b06
+    candidate_sets/top3/plan__efficiency.csv: 96d0f6a34976dfab9a580b02cf5e51a395d904275564950dbcc2d886fc6d267e
+    candidate_sets/top3/stages__efficiency.json: 4f19d3423288d6227a43a6ca5e9dfa2c6009107471e7e1bf4b0fbec875a51a0b
+    candidate_sets/top3/plan__equity.csv: d7e3f47b38adf36f02439afa5ddc250c15d7c6fd22f4e6221b1897ffdb916826
+    candidate_sets/top3/stages__equity.json: b7b20f362b29889b7efe0f2074d9ccfc293d1a58f34b709bb008c57d18653079
+    candidate_sets/top3/metrics__efficiency.json: 8220f94be4aef5583fee59fd0376f57ab859ec30d8b86bccb7e7bb75ee14d4e3
+    candidate_sets/top3/metrics__equity.json: f815393d2d50c8b0f1e05e6de18430464b07e818a5c38232def02da66c360573
+  improving_solution_artifacts:
+    outputs/model_v1/10_stage4_2_certification/runs/stage4_2c_certification_20260820T154032Z_4a3af066364c/candidate_sets/top3/equity/stage_02_high_need_population/direct.highs.improving.sol: 5e5361c7b8dbcae0f1b979176a1280324f6b09aae2e5d04b0ca3af0e3508d3b6
+search:
+  random_seed: 42042
+  gpu_batch_size: 4096
+  elite_pool_size: 16
+  min_sigungu_rounds: 12
+  high_need_rounds: 20
+  radius_schedule: [1, 2, 3, 4]
+  ruin_sets_per_round: 4
+  proposals_per_ruin: 16
+  candidate_pool_size: 96
+  random_addition_probability: 0.20
+  sigungu_deficit_boost: 6.0
+strengthening:
+  anchor_sizes: [0, 8, 16, 20]
+  max_base_cuts: 128
+  max_target_cuts: 320
+solver:
+  backend: direct_highspy
+  minimum_highs_version: 1.8.0
+  random_seed: 42
+  max_certificate_rounds: 1
+  local_branching_radii: [1]
+  local_seed_limit: 2
+  direct_heuristic_effort: 0.15
+  oracle_heuristic_effort: 0.08
+  mip_max_start_nodes: 5000
+  use_objective_target: true
+  global_oracle_strengthening:
+    min_sigungu_coverage: false
+    high_need_population: true
+  # The Stage4.2C min-coverage feasibility oracle with these exact search
+  # options proved the same 5,499-row model infeasible in 182.85 seconds.
+  # Replaying it avoids post-diagnostic search drift without changing any
+  # candidate, constraint, threshold, or retention value.
+  stage42c_oracle_replay:
+    min_sigungu_coverage:
+      enabled: true
+      random_seed: 104752
+      heuristic_effort: 0.02
+      mip_max_start_nodes: 5000
+      use_objective_target: false
+      include_local_exclusion_cuts: false
+      extra_highs_options:
+        mip_pool_soft_limit: 20000
+        mip_lp_age_limit: 10
+  log_to_console: true
+  write_mps: false
+  time_limit_sec:
+    # The first post-install diagnostic measured the identical global oracle
+    # at 30 s as bound-inconclusive; the frozen Stage4.2C trace proved it
+    # infeasible in 182.85 s. This 240 s diagnostic budget changes no model,
+    # threshold, candidate, or retention contract.
+    min_sigungu_coverage: {direct: 30, local: 10, oracle: 240}
+    high_need_population: {direct: 30, local: 10, oracle: 30}
+  extra_highs_options:
+    mip_pool_soft_limit: 10000
+    mip_pscost_minreliable: 4
+    mip_min_cliquetable_entries_for_parallelism: 10000
+  phase_options: {}
+gate:
+  near_optimal_relative_gap_max: 0.005
+  gap_threshold_must_not_be_relaxed: true
+  require_min_sigungu_certification: true
+  require_high_need_certification: true
+  write_current_only_on_full_front_stage_pass: true
+
+# Kept identical to the official policy/model contract.  Diagnostic mode may
+# exercise the implementation but can never promote its result.
+oracle_certification:
+  enabled: true
+  strategy: rebuild_exact_threshold_models
+  rebuild_model_in_official_run: true
+  accept_diagnostic_artifacts: false
+  candidate_count: 452
+  pattern_count: 5242
+  frozen_references:
+    total_population_floor: 167282.84413449097
+    min_sigungu_incumbent: 0.5252179790669655
+    min_sigungu_retained_floor: 0.525217
+    min_sigungu_strict_threshold: 0.527844
+    min_selection_sha256: 5440b1fb5d13530fcf5150c982e06f575182606490d3a7158549e7fd7ddf596e
+    high_need_incumbent: 11609.13711010601
+    high_need_strict_threshold: 11667.182795656541
+    high_selection_sha256: cb3ef97672fc0d61f54c5c911783b033033d2570d86c47b5ca0bfdbf333d6435
+    anchor_seed_count: 26
+    anchor_seed_manifest_sha256: 1561e262a0ab427db2b1f1e44b5e0cc550c699b1c0882297ea164e1200f8eecc
+  min_highs:
+    expected_rows: 5499
+    expected_cols: 5694
+    expected_nnz: 159935
+    expected_exact_model_sha256: a8c5cb0f8b62771c4fcacbeaa9eec65d396ba460dcb693c25247f5ebe0aeda48
+    expected_proof_model_sha256: fe7715669123ed06ac1dbe0e297c1165dc282e31b142f993208fdd731f5f722a
+    expected_universe_sha256: a435792311692e5fd0b941c6b38ac3522c61df29025362c28e61cb6f0f8ac71a
+    highspy_version: 1.15.1
+    threads: 8
+    time_limit_sec: 900
+    random_seed: 104752
+    heuristic_effort: 0.02
+    mip_max_start_nodes: 5000
+    mip_pool_soft_limit: 20000
+    mip_pscost_minreliable: 4
+    mip_min_cliquetable_entries_for_parallelism: 10000
+    mip_lp_age_limit: 10
+    mip_allow_restart: true
+    mip_detect_symmetry: true
+  high_scip:
+    expected_rows: 9377
+    expected_cols: 5694
+    expected_nnz: 1244380
+    expected_exact_model_sha256: e137612a8c69fde8cb7d8f2f7a1b36b3207d4712d6696fa9563e8f552919c2ab
+    expected_proof_model_sha256: 52cefa254ba82fcf1607d31c0703f932f57dbb078d2164ce02f6552d05bfb75a
+    expected_universe_sha256: c7f3703d5168f464021ed7701877bf06cfe8dc176dc4be1892a1717179210c3c
+    expected_cut_sha256: 6fd42e4e68b583acb1f4dd9a25276025d7f3519bc762a6d95e9856338f24867c
+    expected_mps_sha256: b06f0593a195d1ea3350a3f9ae62e782269ab91c8242ba803f365efb76494d50
+    coverage_integrality: binary_exact_projection
+    outward_safe_cuts: true
+    anchor_sizes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    max_cuts: 4096
+    expected_cut_count: 3877
+    expected_unique_anchor_count: 3113
+    portfolio_seeds: [11, 23, 42, 77, 101, 131, 197, 257]
+    workers: 8
+    threads_per_worker: 1
+    budget_strategy: full_frozen_portfolio_rerun_same_mps_same_seeds
+    budget_basis:
+      run_id: stage4_2d_equity_20260821T012542Z_394af1752be9
+      prior_time_limit_sec_per_seed: 300
+      proved_infeasible_seeds: [23, 77, 101, 197, 257]
+      timelimit_no_solution_seeds: [11, 42, 131]
+    # Keep diagnostic and official reconstruction contracts identical.
+    time_limit_sec_per_seed: 900
+    memory_limit_mib_per_worker: 2800
+    pyscipopt_version: 6.2.1
+    scip_version: [10, 0, 2]
+    require_all_workers_complete: true
+    require_all_workers_infeasible: true

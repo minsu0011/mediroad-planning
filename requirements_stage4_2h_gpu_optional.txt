@@ -1,0 +1,2 @@
+# Install only if the existing CUDA-enabled CuPy is missing.
+cupy-cuda12x>=13.6,<14

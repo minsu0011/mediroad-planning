@@ -1,0 +1,91 @@
+version: MEDIROAD_STAGE4_OPERATIONAL_FINAL_V1
+stage5_started: false
+
+paths:
+  output_root: outputs/model_v1/11_stage4_operational_final
+  report_root: reports/model_v1/stage4_operational_final
+
+computational_parent:
+  required_decision: PASS_STAGE4_2H_COMPUTATIONAL_FINAL_COARSE_PARETO__FIELD_VALIDATION_PENDING
+  candidate_universe: coarse_pareto
+  expected_solver_candidate_count: 896
+  expected_pattern_count: 10838
+  threshold_fingerprint: b0a1a2c6dc6f1d1e7c3ae1141700fbb3c54854b03746d2e45d2d0ba33c3b1ad4
+  frozen: true
+
+field_validation:
+  queue_min: 30
+  queue_max: 80
+  verified_requires_all_yes: true
+  verified_requires_valid_date: true
+  busproxy_final_forbidden: true
+  narrow_identity_evidence_relative_path: 14_v6_external_data/operational_final/narrow_venue_identity_evidence_20260822.csv
+  provisional_coordinate_release_forbidden: true
+
+matrix:
+  primary_matrix_id: hard_5000m
+
+optimization:
+  visit_count: 20
+  policies: [efficiency, balanced, equity]
+  objective_retention:
+    total_population: 0.99
+    need_weighted: 0.99
+    high_need: 0.99
+    min_sigungu_coverage: 1.0
+  balanced_min_efficiency_fraction: 0.80
+  equity_min_efficiency_fraction: 0.60
+  high_need_quantile: 0.80
+  known_overlap_penalty: 1000.0
+  travel_penalty_scale: 1.0
+  visit_location_deviation_penalty: 100.0
+  deterministic_tiebreak_scale: 0.000001
+  near_optimal_relative_gap_max: 0.005
+  exact_month_date_forbidden: true
+
+solver:
+  engine: scipy_milp_highs_lossless_grid_pattern
+  near_optimal_relative_gap_max: 0.005
+  min_sigungu_ratio_integer_scale: 1000000
+  visit_deviation_exact_integer_formulation: true
+  known_incumbent_objective_cutoff: false
+  operational_final_time_per_stage_sec: 600
+  highs_threads: 8
+  random_seed: 42
+
+runtime:
+  candidate_workers: 1
+  highs_threads_per_worker: 8
+  highs_random_seed: 42
+  logical_cpu_budget: 8
+  memory_soft_limit_gib: 27
+
+candidate_constraints:
+  one_per_coverage_cluster: true
+  max_visits_per_admin: 2
+  max_visits_per_sigungu: 4
+
+bundle_assignment:
+  primary_minimum_per_bundle: 1
+  time_limit_sec: 60
+
+operational_optimizer:
+  max_no_good_iterations: 100
+  wall_time_limit_sec: 7200
+  spatial_time_limit_per_stage_sec: 600
+  bundle_time_limit_sec: 120
+  assignment_search_state_limit: 500000
+
+hardware:
+  profile: intel_core_ultra_7_258v_32gb_rtx3080ti
+  highs_threads: 8
+  blas_threads: 1
+  memory_soft_limit_gib: 27
+  gpu_device: 0
+  gpu_memory_fraction: 0.85
+  gpu_role: metric_batch_and_primal_search_only
+
+release:
+  success_decision: PASS_STAGE4_OPERATIONAL_FINAL
+  blocked_decision: BLOCKED_STAGE4_OPERATIONAL_FINAL_REAL_WORLD_INPUTS_REQUIRED
+  stage5_release_only_after_success: true

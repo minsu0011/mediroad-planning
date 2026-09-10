@@ -1,0 +1,219 @@
+version: MEDIROAD_STAGE4_FINALIZATION_V1
+contract_status: post_quality_gate_and_greedy_floor_hardening_frozen_before_rerun
+contract_change_reason: >-
+  A read-only 120-second diagnostic established a certified frozen Top3 baseline
+  while Top5 and coarse-Pareto expansion proofs remained inconclusive. This
+  fail-closed disposition rule changes no performance threshold and forbids claims
+  from uncertified incumbents. The first official Stage 4.1 attempt
+  stage4_1_20260819T184615Z_b221621d4413 then failed closed because the diagnostic
+  frontier efficiency solve at n=25 produced no incumbent within the predeclared
+  30-second stage budget. Before rerun, a single sequential 120-second no-incumbent
+  retry was frozen; it preserves the objective plan, senses, retention formula,
+  constraint family, comparison threshold, candidate universe, and promotion rule.
+  A pre-rerun runtime smoke also showed that SciPy/HiGHS cannot change its
+  process-global scheduler from four to eight threads after initialization, so
+  the retry keeps four threads and gains resources by running without a competing
+  frontier task. The second official attempt
+  stage4_1_20260819T194409Z_3bc5514c72c4 completed the n=25 retry but failed
+  before release because one quality-gate consumer used `scenario` instead of
+  the canonical `travel_scenario`. That schema link is now fail-closed and
+  regression-tested. The same failed run also exposed that the final
+  lexicographic Efficiency policy could fall below the same-base-constraint
+  deterministic greedy solution even though its first objective stage was
+  better. The pre-existing zero-tolerance no-harm gate is therefore enforced as
+  an absolute greedy population floor from the first Efficiency stage through
+  the final cost stage. No tolerance, objective, retention fraction, candidate
+  universe, or promotion threshold was relaxed.
+stage5_started: false
+
+runtime_environment:
+  python_major_minor: "3.11"
+  exact_package_versions:
+    numpy: 2.4.6
+    pandas: 3.0.5
+    scipy: 1.17.1
+    pyarrow: 25.0.0
+    PyYAML: 6.0.3
+    geopandas: 1.1.4
+    shapely: 2.1.2
+    pyproj: 3.7.2
+    ortools: 9.10.4067
+    matplotlib: 3.11.1
+    tabulate: 0.10.0
+    pytest: 9.1.1
+
+project_contract:
+  target_release: PASS_STAGE4_READY_FOR_FIELD_VALIDATION
+  computational_final_is_not_operational_final: true
+  stage1_to_stage3_frozen: true
+  provisional_stage4_frozen: true
+  temporal_selector_forbidden: true
+  exact_month_date_forbidden: true
+  potential_beneficiary_exposure_not_expected_patients: true
+
+parent_contract:
+  stage3_current_pointer:
+    path: outputs/model_v1/07_stage3/CURRENT_STAGE3_RUN.json
+    sha256: 5a5fe659d038747f4d79e8dd5046c0da40bd6dd79359a8c622a175be08d62e70
+  stage4_current_pointer:
+    path: outputs/model_v1/08_stage4/CURRENT_STAGE4_RUN.json
+    sha256: 9194a622db059b072dbca4858434b0c38011ef9bf5b88e209f80277ed5b7a64f
+  stage4_parent_run_id: stage4_20260819T052330Z_ec2f77ccc968
+  stage4_parent_metadata:
+    path: outputs/model_v1/08_stage4/runs/stage4_20260819T052330Z_ec2f77ccc968/STAGE4_RUN_METADATA.json
+    sha256: 5ca32b94ff82f15d48ffad54066c49aad4cd05b1fafa548084eaa4bcba42fb8f
+  stage4_parent_inventory:
+    path: outputs/model_v1/08_stage4/runs/stage4_20260819T052330Z_ec2f77ccc968/STAGE4_ARTIFACT_INVENTORY.csv
+    sha256: f14e86f9de95f03a29b0a6f2106312a06b5892981b2e0f9370aea184b144542f
+  stage4_parent_interface:
+    path: outputs/model_v1/08_stage4/runs/stage4_20260819T052330Z_ec2f77ccc968/05_interface/stage4_to_stage5_interface.parquet
+    sha256: 6b23e4a3e38427adbc98f7e311cbf1eee7ed34ebc0fbee6573490fc2c17f3f24
+  stage4_parent_report:
+    path: outputs/model_v1/08_stage4/runs/stage4_20260819T052330Z_ec2f77ccc968/FINAL_REPORT.md
+    sha256: 51dab5c8ca7215ade13791d9d8c47be10a185dfc71ed584ff06313ff3a38818e
+  stage4_base_config:
+    path: configs/model_v1/stage4.yaml
+    sha256: df1daba7fc9712a3d93ff37643be6f1cc6da4934a2042fb21d205c7e8b50e17c
+  direction_log:
+    path: reports/model_v1/MODEL_DIRECTION_DECISION_LOG.md
+    sha256: dd3354594fa060747ee5f6ad5adf68cd077145e27b5a092698913d5aa02d50d6
+
+runtime:
+  jobs: 8
+  highs_threads_per_task: 4
+  frontier_retry_highs_threads: 4
+  highs_random_seed: 42
+  candidate_parallel_workers: 2
+  frontier_parallel_workers: 2
+  memory_soft_limit_gib: 24
+  diagnostic_time_per_stage_sec: 20
+  candidate_time_per_stage_sec: 120
+  final_time_per_stage_sec: 120
+  frontier_time_per_stage_sec: 30
+  frontier_retry_time_per_stage_sec: 120
+  frontier_retry_parallel_workers: 1
+  run_full_regression_suite: true
+  primary_solver: scipy_highs_lossless_group_milp
+  seed_diagnostic_solver: compressed_cp_sat_with_greedy_hints
+  independent_certifier: bound_based_scipy_highs_stage_telemetry
+
+solver:
+  seeds: [11, 23, 42, 77, 101]
+  near_optimal_relative_gap_max: 0.005
+  require_objective_value: true
+  require_best_bound: true
+  require_branch_and_conflict_telemetry_for_cp_sat: true
+  require_all_lexicographic_stages_certified_for_solver_certified_release: true
+  greedy_no_harm_required_when_same_constraints: true
+  final_efficiency_must_not_underperform_constrained_greedy: true
+  high_level_release_may_be_ready_for_field_validation_when_uncertified: true
+  highs_primary_requires_same_contract_recomputation: true
+  compressed_cp_sat_is_diagnostic_only: true
+
+candidate_sets:
+  strategies: [top3, top5, coarse_pareto, coverage_cluster]
+  max_candidates: 900
+  coarse_pareto_tier_max: 3
+  require_all_admins: true
+  coverage_cluster_required: false
+  coverage_cluster_unavailable_must_be_explicit: true
+  expected_coverage_cluster_maximum_matching: 149
+  expected_admin_count: 153
+  top3_max_unique_coverage_loss_fraction: 0.01
+  top3_max_need_weighted_loss_fraction: 0.01
+  top3_max_high_need_loss_fraction: 0.02
+  top3_max_min_sigungu_coverage_loss: 0.02
+  min_selected_admin_jaccard: 0.50
+  min_selected_coverage_cluster_jaccard: 0.50
+  maximum_solver_relative_gap: 0.005
+  fallback_order: [top5, coarse_pareto, coverage_cluster]
+  promotion_scenario: balanced
+  candidate_reduction_scope_balanced_only: true
+  uncertified_expansion_disposition:
+    action: retain_certified_frozen_top3
+    promotion_allowed: false
+    comparison_conclusive: false
+    release_ceiling: PASS_STAGE4_READY_FOR_FIELD_VALIDATION
+    performance_claims_forbidden: true
+    certified_comparator_threshold_breach_forbids_top3_retention: true
+
+seed_stability:
+  max_objective_relative_spread: 0.01
+  max_unique_coverage_relative_spread: 0.01
+  max_need_weighted_relative_spread: 0.01
+  max_high_need_relative_spread: 0.02
+  max_min_sigungu_coverage_absolute_spread: 0.02
+  min_median_venue_jaccard: 0.67
+  min_median_admin_jaccard: 0.67
+  min_median_coverage_cluster_jaccard: 0.67
+  min_median_bundle_jaccard: 0.67
+
+bundle_sensitivity:
+  minimums_to_test: [0, 1]
+  primary_minimum_per_bundle: 1
+  primary_rationale: ensure_each_frozen_service_bundle_is_represented_once_in_twenty_visits
+  preserve_spatial_selection: true
+  arbitrary_minimum_must_not_be_hidden: true
+
+field_validation:
+  robust_frequency_threshold: 0.67
+  queue_min: 30
+  queue_max: 60
+  expected_field_columns:
+    - large_vehicle_access
+    - parking
+    - electricity
+    - toilet
+    - indoor_waiting
+    - heating_cooling
+    - barrier_free
+    - medical_equipment_space
+    - actual_facility_exists
+    - reservation_possible
+    - contact_verified
+    - verification_date
+
+busproxy:
+  allow_spatial_anchor: true
+  allow_unverified_final_physical_venue: false
+  unresolved_status_required: true
+  fallback_count: 2
+
+travel:
+  mode: unavailable
+  mobile_team_bases_path: configs/model_v1/mobile_team_bases.yaml
+  allow_diagnostic_scenarios: true
+  diagnostic_scenarios: [cheongju_medical_center, chungju_medical_center, dual_base_nearest]
+  allow_diagnostic_promotion: false
+
+frontier:
+  visit_counts: [5, 10, 15, 20, 25, 30, 40]
+  scenarios: [efficiency, balanced]
+  no_incumbent_retry_contract:
+    trigger: no_incumbent_only
+    maximum_attempts: 2
+    retry_is_sequential: true
+    retry_changes_objectives_or_thresholds: false
+    failed_run_id: stage4_1_20260819T184615Z_b221621d4413
+    failed_scenario: efficiency
+    failed_visit_count: 25
+    failed_stage_budget_sec: 30
+
+release:
+  possible_decisions:
+    - PASS_STAGE4_SOLVER_CERTIFIED
+    - PASS_STAGE4_COMPUTATIONAL_FINAL
+    - PASS_STAGE4_READY_FOR_FIELD_VALIDATION
+    - PASS_STAGE4_OPERATIONAL_FINAL
+    - FAIL_STAGE4_FINALIZATION
+  target: PASS_STAGE4_READY_FOR_FIELD_VALIDATION
+  operational_final_requires_verified_venues_and_confirmed_travel: true
+  stage5_execution_forbidden: true
+
+paths:
+  output_root: outputs/model_v1/09_stage4_finalization
+  report_root: reports/model_v1/stage4_finalization
+  lock: outputs/model_v1/.stage4_finalization_writer.lock
+  forbidden_stage5_roots:
+    - outputs/model_v1/10_stage5
+    - reports/model_v1/stage5

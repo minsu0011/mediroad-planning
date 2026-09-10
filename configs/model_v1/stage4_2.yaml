@@ -1,0 +1,112 @@
+version: MEDIROAD_STAGE4_2_FIELD_AND_COMPUTE_V1
+stage5_started: false
+
+project_contract:
+  objective: >-
+    Harden the Stage 4 candidate universe and Equity solve, collect and validate actual
+    facility evidence, resolve BUSPROXY spatial anchors to verified physical venues,
+    and rerun Stage 4 with confirmed travel inputs without creating Stage 5 dates.
+  stage1_to_stage3_frozen: true
+  stage4_1_parent_frozen: true
+  actual_patients_not_predicted: true
+  temporal_evidence_advisory_only: true
+  exact_month_date_forbidden: true
+  unverified_busproxy_final_forbidden: true
+
+paths:
+  output_root: outputs/model_v1/10_stage4_2
+  report_root: reports/model_v1/stage4_2
+  lock: outputs/model_v1/.stage4_2_writer.lock
+
+matrix:
+  primary_matrix_id: hard_5000m
+
+optimization:
+  visit_count: 20
+  objective_retention:
+    total_population: 0.99
+    need_weighted: 0.99
+    high_need: 0.99
+    min_sigungu_coverage: 1.0
+  balanced_min_efficiency_fraction: 0.80
+  equity_min_efficiency_fraction: 0.60
+  high_need_quantile: 0.80
+  known_overlap_penalty: 1000.0
+  travel_penalty_scale: 1.0
+  visit_location_deviation_penalty: 100.0
+  deterministic_tiebreak_scale: 0.000001
+
+solver:
+  engine: scipy_milp_highs_lossless_grid_pattern
+  near_optimal_relative_gap_max: 0.005
+  min_sigungu_ratio_integer_scale: 1000000
+  visit_deviation_exact_integer_formulation: true
+  known_incumbent_objective_cutoff: false
+  candidate_time_per_stage_sec: 300
+  operational_final_time_per_stage_sec: 600
+  final_equity_target: CERTIFIED_NEAR_OPTIMAL_OR_OPTIMAL
+  hardware_profile: intel_core_ultra_7_258v_32gb_cpu
+  gpu_required: false
+
+runtime:
+  candidate_workers: 2
+  highs_threads_per_worker: 4
+  highs_random_seed: 42
+  logical_cpu_budget: 8
+  memory_soft_limit_gib: 24
+
+candidate_expansion:
+  candidate_sets: [top3, top5, coarse_pareto]
+  reference_candidate_set: top3
+  compress_exact_equivalents: true
+  safe_subset_dominance: true
+  dominance_max_group_size: 80
+  one_per_coverage_cluster: true
+  max_visits_per_admin: 2
+  max_visits_per_sigungu: 4
+  max_unique_coverage_loss_fraction: 0.01
+  max_need_weighted_loss_fraction: 0.01
+  max_high_need_loss_fraction: 0.02
+  max_min_sigungu_coverage_loss: 0.02
+  min_coverage_cluster_jaccard: 0.50
+  uncertified_comparison_disposition: INCONCLUSIVE_NO_PROMOTION
+
+equity_long_solve:
+  enabled: true
+  candidate_set: top3
+  time_limit_per_stage_sec: 600
+  gap_threshold_must_not_be_relaxed: true
+
+bundle_assignment:
+  primary_minimum_per_bundle: 1
+  run_minimum_zero_sensitivity: true
+  time_limit_sec: 60
+
+field_validation:
+  queue_min: 30
+  queue_max: 60
+  allowed_statuses: ["YES", "NO", "UNKNOWN"]
+  verified_requires_all_yes: true
+  verified_requires_valid_date: true
+  preserve_official_12_field_contract: true
+  evidence_ledger_separate: true
+
+operational_inputs:
+  team_bases_required: true
+  team_bundle_capability_required: true
+  vehicles_required: true
+  resource_calendar_required: true
+  venue_calendar_required: true
+  confirmed_team_venue_travel_required: true
+  diagnostic_travel_cannot_be_promoted: true
+  stage5_schedule_generation_forbidden: true
+
+release:
+  possible_decisions:
+    - PASS_STAGE4_2_COMPUTATIONAL_HARDENING
+    - PASS_STAGE4_2_READY_FOR_FIELD_VALIDATION
+    - PASS_STAGE4_2_READY_FOR_OPERATIONAL_FINAL
+    - PASS_STAGE4_OPERATIONAL_FINAL
+    - FAIL_STAGE4_2
+  operational_final_requires_all_verified_non_bus_venues: true
+  operational_final_requires_all_policy_scenarios_certified: true

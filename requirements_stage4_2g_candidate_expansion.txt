@@ -1,0 +1,4 @@
+highspy>=1.15,<2
+PySCIPOpt>=6.2,<7
+psutil>=5.9
+PyYAML>=6

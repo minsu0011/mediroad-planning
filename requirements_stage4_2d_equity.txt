@@ -1,0 +1,34 @@
+# Install into the existing mediroad-stage4-2c environment.
+highspy==1.15.1
+pyscipopt==6.2.1
+numpy>=1.26,<3
+pandas==3.0.5
+scipy>=1.11,<2
+pyarrow==25.0.0
+PyYAML>=6,<7
+psutil>=5.9,<8
+# Full-project regression imports the frozen geospatial data stack.  Pin the
+# versions already validated by the authoritative mediroad-v6 environment so
+# the Stage 4.2D solver environment does not resolve or upgrade core numerics.
+geopandas==1.1.4
+pyproj==3.7.2
+shapely==2.1.2
+fiona==1.10.1
+pyogrio==0.12.1
+certifi==2026.7.22
+attrs==26.1.0
+click==8.4.2
+click-plugins==1.1.1.2
+cligj==0.7.2
+# Frozen reporting stack exercised by the authoritative full-project test gate.
+matplotlib==3.11.1
+plotly==6.9.0
+pillow==12.3.0
+kaleido==1.3.0
+openpyxl==3.1.5
+contourpy==1.3.3
+cycler==0.12.1
+fonttools==4.63.0
+kiwisolver==1.5.0
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0

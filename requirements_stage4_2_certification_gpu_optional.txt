@@ -1,0 +1,2 @@
+# Optional. Install only when the NVIDIA driver/CUDA runtime is working in WSL2.
+cupy-cuda12x>=13.4,<14

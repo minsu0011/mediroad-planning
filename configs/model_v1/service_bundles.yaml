@@ -1,0 +1,83 @@
+version: MEDIROAD_MODEL_V1_STAGE2_SERVICE_BUNDLES_20260818
+status: recommended_service_bundles_not_confirmed_staffing_plan
+availability_source: unknown_pending_operator_input
+
+bundles:
+  - bundle_id: chronic_primary
+    bundle_name_ko: 만성질환·일차진료 중심
+    included_services:
+      internal_medicine: 0.55
+      family_medicine: 0.45
+    mobile_service_suitability: recommended_subject_to_staffing
+    required_staff: unknown_operator_input
+    required_equipment: basic_exam_and_chronic_screening_requirements_to_verify
+    required_venue_conditions: privacy_power_waiting_area_to_verify
+    compatible_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    incompatible_conditions: unknown_pending_operator_input
+    estimated_duration: unknown
+    confidence: medium_low
+  - bundle_id: musculoskeletal_rehab
+    bundle_name_ko: 근골격·재활 중심
+    included_services:
+      orthopedics: 0.35
+      rehabilitation: 0.35
+      anesthesiology_pain: 0.20
+      neurosurgery: 0.10
+    mobile_service_suitability: recommended_subject_to_equipment_and_staffing
+    required_staff: unknown_operator_input
+    required_equipment: rehabilitation_and_pain_equipment_to_verify
+    required_venue_conditions: accessibility_power_treatment_space_to_verify
+    compatible_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    incompatible_conditions: unknown_pending_operator_input
+    estimated_duration: unknown
+    confidence: low
+  - bundle_id: sensory_oral_skin
+    bundle_name_ko: 감각기능·구강·피부 중심
+    included_services:
+      ophthalmology: 0.30
+      otolaryngology: 0.25
+      dental: 0.25
+      dermatology: 0.20
+    mobile_service_suitability: recommended_subject_to_equipment_and_staffing
+    required_staff: unknown_operator_input
+    required_equipment: specialty_screening_equipment_to_verify
+    required_venue_conditions: privacy_power_lighting_infection_control_to_verify
+    compatible_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    incompatible_conditions: unknown_pending_operator_input
+    estimated_duration: unknown
+    confidence: low
+  - bundle_id: neuro_mental
+    bundle_name_ko: 신경·인지·정신건강 중심
+    included_services:
+      neurology: 0.55
+      psychiatry: 0.45
+    mobile_service_suitability: recommended_subject_to_privacy_and_staffing
+    required_staff: unknown_operator_input
+    required_equipment: cognitive_and_mental_screening_requirements_to_verify
+    required_venue_conditions: private_consultation_accessibility_waiting_area_to_verify
+    compatible_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    incompatible_conditions: unknown_pending_operator_input
+    estimated_duration: unknown
+    confidence: low
+  - bundle_id: comprehensive_basic_referral
+    bundle_name_ko: 복합 기본진료·상담·의뢰 중심
+    included_services:
+      family_medicine: 0.25
+      internal_medicine: 0.20
+      general_surgery: 0.15
+      obstetrics_gynecology: 0.15
+      urology: 0.15
+      dermatology: 0.10
+    mobile_service_suitability: recommended_screening_and_referral_not_definitive_treatment
+    required_staff: unknown_operator_input
+    required_equipment: basic_exam_and_screening_requirements_to_verify
+    required_venue_conditions: privacy_power_waiting_area_to_verify
+    compatible_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    incompatible_conditions: unknown_pending_operator_input
+    estimated_duration: unknown
+    confidence: low
+
+excluded_from_mobile_bundles:
+  - service_id: emergency_medicine
+    reason: emergency_access_gap_is_for_referral_context_not_mobile_emergency_treatment
+

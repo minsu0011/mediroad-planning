@@ -1,0 +1,128 @@
+version: MEDIROAD_STAGE4_2H_SEQUENTIAL_LADDER_COARSE_EQUITY_V1
+stage5_started: false
+
+paths:
+  output_root: outputs/model_v1/10_stage4_2h_coarse_equity
+  report_root: reports/model_v1/stage4_2h_coarse_equity
+  lock: outputs/model_v1/.stage4_2h_coarse_equity_writer.lock
+
+hardware:
+  profile: intel_core_ultra_7_258v_32gb_rtx3080ti
+  highs_threads: 8
+  memory_soft_limit_gib: 27
+  gpu_device: 0
+  gpu_memory_fraction: 0.85
+
+parent_stage42g:
+  run_id: stage4_2g_candidate_expansion_20260821T162221Z_55d8276df85e
+  current_sha256: 29e7c15fce34ba80f156cbacb1c42b2f1a85d5cba268ca30bc5de07f24de6535
+  inventory_sha256: 1247f3fe62a1fd94acb8c4218b36f4cdde464fd4a5465398896b137cffacfea4
+  quality_gate_sha256: 4b42eae085cad103d0167f4014363cbdac3f289c5b6267333d42f4130939a09b
+
+# Same frozen Stage4.1 candidate-sensitivity contract. H changes only the
+# promotion semantics: every retained rung must pass against all wider evidence.
+ladder:
+  promotion_ladder: [top3, top5, coarse_pareto]
+  expected_final_candidate_set: coarse_pareto
+  threshold_fingerprint: b0a1a2c6dc6f1d1e7c3ae1141700fbb3c54854b03746d2e45d2d0ba33c3b1ad4
+  max_unique_coverage_loss_fraction: 0.01
+  max_need_weighted_loss_fraction: 0.01
+  max_high_need_loss_fraction: 0.02
+  max_min_sigungu_coverage_loss: 0.02
+  min_selected_admin_jaccard: 0.50
+  min_selected_coverage_cluster_jaccard: 0.50
+  max_solver_relative_gap: 0.005
+
+equity:
+  candidate_set: coarse_pareto
+  visit_count: 20
+  expected_candidate_count: 896
+  expected_pattern_count: 10838
+  preserve_stage42_objectives: true
+  preserve_stage42_constraints: true
+  total_population_efficiency_fraction: 0.60
+  min_sigungu_retention: 1.0
+  high_need_retention: 0.99
+  need_weighted_retention: 0.99
+
+solver:
+  near_optimal_relative_gap_max: 0.005
+  mip_heuristic_effort: 0.22
+  oracle_heuristic_effort: 0.08
+  mip_max_start_nodes: 50000
+  time_limit_sec:
+    common:
+      total_population: 1800
+      need_weighted: 300
+      high_need_population: 600
+      min_sigungu_coverage: 420
+      cost: 600
+    equity:
+      min_sigungu_coverage: 420
+      high_need_population: 600
+      need_weighted: 300
+      cost: 600
+  extra_highs_options:
+    mip_pool_soft_limit: 30000
+    mip_pscost_minreliable: 4
+    mip_lp_age_limit: 8
+    mip_detect_symmetry: true
+    mip_max_stall_nodes: 2147483647
+
+oracle:
+  enabled: true
+  guided_objective_enabled: true
+  stop_at_objective_target: true
+  max_rounds: 4
+  default_time_limit_sec: 3600
+  time_limit_sec:
+    min_sigungu_coverage: 30
+    high_need_population: 30
+    need_weighted: 30
+    cost: 30
+
+gpu_lns:
+  enabled: true
+  require_cuda_for_official: true
+  device: 0
+  memory_fraction: 0.85
+  random_seed: 42042
+  batch_size: 4096
+  min_sigungu_rounds: 192
+  high_need_rounds: 320
+  proposals_per_round: 4096
+  radius_schedule: [1, 2, 3, 4, 5, 6, 8]
+  candidate_pool_size: 384
+  random_addition_probability: 0.22
+  sigungu_deficit_boost: 8.0
+  population_tiebreak_weight: 0.001
+  proof_elite_count: 32
+  proof_elites_per_batch: 2
+
+# Exact-projection proof hardening.  Outward-safe submodular cuts preserve the
+# frozen feasible set while tightening coverage thresholds in x-space.  The
+# min-sigungu and high-need proofs keep y continuous (their exact monotone
+# one-link projection).  Coarse-Pareto diagnostics showed this removes 10,838
+# redundant branch variables while dense cuts retain strong x-space bounds.
+proof_strengthening:
+  enabled: true
+  proof_anchor_seed_count: 96
+  proof_anchor_random_seed: 42062
+  anchor_sizes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+  max_cuts_per_metric: 256
+  outer_approximation_max_rounds: 16
+  binary_coverage_objectives: []
+  highs_first_time_limit_sec:
+    min_sigungu_coverage: 1200
+    high_need_population: 1200
+    need_weighted: 0
+    cost: 0
+
+# Rescue only unresolved strict-threshold questions. Six 1-thread workers use
+# most CPU cores without replicating the coarse MIP enough to threaten 32GiB.
+scip_portfolio:
+  enabled: true
+  workers: 6
+  seeds: [11, 23, 42, 77, 101, 131]
+  time_limit_sec: 3600
+  memory_limit_mib_per_worker: 3200

@@ -1,0 +1,15 @@
+# Frozen versions used by the Stage 4.1 certification run (Python 3.11 / WSL).
+numpy==2.4.6
+pandas==3.0.5
+scipy==1.17.1
+pyarrow==25.0.0
+PyYAML==6.0.3
+geopandas==1.1.4
+shapely==2.1.2
+pyproj==3.7.2
+pyrosm==0.13.1
+igraph==0.11.9
+ortools==9.10.4067
+matplotlib==3.11.1
+tabulate==0.10.0
+pytest==9.1.1

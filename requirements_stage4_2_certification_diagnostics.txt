@@ -1,0 +1,4 @@
+# Optional, diagnostic-only backends.  They cannot promote a Stage 4.2C run.
+ortools==9.10.4067
+pyscipopt==6.2.1
+cupy-cuda12x==13.6.0

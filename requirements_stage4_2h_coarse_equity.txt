@@ -1,0 +1,4 @@
+# Reuse the validated mediroad-stage4-2c environment whenever possible.
+highspy>=1.15,<2
+pyscipopt>=6.2,<7
+psutil>=5.9

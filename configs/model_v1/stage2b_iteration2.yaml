@@ -1,0 +1,128 @@
+version: MEDIROAD_MODEL_V1_STAGE2B_ITERATION2_20260818
+contract_mapping_sha256: ab243b9ec1e40986aa9712cc59e6cd2d3f33ff99930314fa173d450e9ff28abb
+status: locked_before_iteration2_full_candidate_results
+purpose: bottleneck_resolution_without_posthoc_threshold_tuning
+stage_scope: Stage2B_temporal_candidate_and_external_validation_only
+stage3_started: false
+
+frozen_baseline:
+  hardening_config: configs/model_v1/stage2b_hardening.yaml
+  hardening_run_id: stage2b_hardening_20260818T125810Z_a593019eafb3
+  hardening_decision: PASS_ADVISORY_TEMPORAL
+  release_policy: keep_all_five_bundles_abstained_until_original_release_rules_pass
+  official_output_tree_mutation_forbidden: outputs/model_v1/05_stage2b_hardening
+
+candidate_grid:
+  representations:
+    - baseline
+    - composition_share
+    - log_common_mean_residual
+    - log_common_median_residual
+  seasonal_aggregators: [mean, median]
+  spatial_estimators:
+    local:
+      enabled: true
+    empirical_bayes:
+      centers: [mean, median]
+      noise_multipliers: [0.5, 1.0, 2.0, 4.0]
+  candidate_count_expected: 72
+  fixed_before_full_grid_result: true
+
+iteration3_single_nested_candidate:
+  candidate_id: train_year_common_variance_gated_composition
+  status: locked_before_iteration3_result
+  selection_data: train_year_only
+  selection_scope: cross_year_direction_x_policy_sigungu_x_bundle
+  common_monthly_variance_ratio_threshold: 0.50
+  rule:
+    common_variance_ratio_greater_than_or_equal_threshold: baseline
+    common_variance_ratio_below_threshold: composition_share
+  holdout_labels_visible_during_selection: false
+  threshold_grid_search_forbidden: true
+  original_bundle_weights_unchanged: true
+  same_promotion_no_harm_contract_required: true
+  maximum_status_without_third_same_definition_year: exploratory_only
+
+external_validation_sources:
+  nhis_provider_address_monthly_specialty:
+    data_go_kr_id: 15141856
+    url: https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId=FILE_000000003098435&fileDetailSn=1&insertDataPrcus=N
+    expected_bytes: 10567004
+    expected_sha256: f2b68da6d9ed3782d84df3965c0b2a6a3ceeb1a73861603ef3b3d30721dcc069
+    expected_data_rows: 194951
+    expected_persons_suppressed_cells: 19893
+    expected_visits_suppressed_cells: 18413
+    expected_duplicate_dimensional_key_groups: 0
+    observed_years: [2021, 2022, 2023]
+    geography: provider_address_province
+    allowed_role: validation_only_cross_source_phase_diagnostic
+    concat_to_patient_address_panel_forbidden: true
+  nhis_patient_address_monthly_all_care:
+    data_go_kr_id: 15141213
+    url: https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId=FILE_000000003090612&fileDetailSn=1&insertDataPrcus=N
+    expected_bytes: 10689786
+    expected_sha256: e78a93d6240454b0f6cdd084be8044a46a74a499935b5c83362a770aad8925cd
+    expected_data_rows: 228207
+    expected_visits_suppressed_cells: 8317
+    expected_duplicate_dimensional_key_groups: 52
+    expected_duplicate_dimensional_key_rows: 104
+    expected_duplicate_dimensional_key_geography: 경기도
+    observed_years: [2019, 2020, 2021, 2022, 2023]
+    geography: patient_address_sigungu
+    allowed_role: validation_only_common_utilization_phase_diagnostic
+    specialty_release_validation_forbidden: true
+    concat_to_specialty_panel_forbidden: true
+
+diagnostic_only_external_candidates:
+  - composition_share
+  - common_general_ratio
+  - common_general_additive_residual
+  - log_common_residual
+  - provider_side_phase_agreement
+  - pandemic_period_sensitivity
+  - suppression_bound_sensitivity
+  
+promotion_no_harm_contract:
+  tolerance: 1.0e-12
+  global_cross_year:
+    top1_agreement: strictly_greater_than_baseline
+    primary_in_holdout_top2: strictly_greater_than_baseline
+    selected_pair_holdout_top2_coverage: strictly_greater_than_baseline
+    rank_spearman_median: greater_than_or_equal_to_baseline
+    normalized_regret_mean: less_than_or_equal_to_baseline
+  resampling:
+    lomo_primary_retention: greater_than_or_equal_to_baseline
+    lomo_top2_retention: greater_than_or_equal_to_baseline
+    loso_primary_retention: greater_than_or_equal_to_baseline
+    loso_top2_retention: greater_than_or_equal_to_baseline
+    permutation_strength_mean: greater_than_or_equal_to_baseline
+  bundle_harm_caps:
+    maximum_top2_retention_decline: 0.05
+    maximum_normalized_regret_increase: 0.05
+  construct_integrity:
+    stage2a_bundle_definition_change_count_max: 0
+    stage2a_what_top1_retention_min: 1.0
+    patient_and_provider_geography_mixing_count_max: 0
+    validation_source_used_for_threshold_tuning_count_max: 0
+  final_candidate_requirements:
+    original_release_rules_must_be_reapplied: true
+    bootstrap_replicates: 1000
+    permutation_replicates: 5000
+    jobs: 8
+    single_writer_lock: true
+    frozen_hash_mutation_count_max: 0
+
+decision_contract:
+  candidate_promotion_requires_all_no_harm_checks: true
+  no_eligible_candidate_decision: NO_PROMOTION_KEEP_PASS_ADVISORY_TEMPORAL
+  abstention_is_valid_completion: true
+  metric_improvement_without_release_evidence_is_not_promotion: true
+  stage3_execution_forbidden: true
+
+output_contract:
+  output_dir: outputs/model_v1/06_stage2b_iteration2
+  report_dir: reports/model_v1/stage2b_iteration2
+  raw_validation_dir: 14_v6_external_data/stage2_temporal_validation/raw
+  normalized_validation_dir: 14_v6_external_data/stage2_temporal_validation/validation_only
+  official_hardening_tree_must_remain_unchanged: true
+  atomic_metadata_last: true

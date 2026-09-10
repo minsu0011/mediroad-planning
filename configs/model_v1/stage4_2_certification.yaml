@@ -1,0 +1,145 @@
+version: MEDIROAD_STAGE4_2C_CERTIFICATION_HARDENING_V5_FAIL_CLOSED_BOTTLENECK_CONCLUSION
+stage5_started: false
+
+post_diagnostic_compute_reallocation:
+  frozen_before_official_rerun: true
+  evidence_run: stage4_2c_certification_20260820T153056Z_11697c90b881
+  observed_bottleneck: equity_min_sigungu_direct_bound_stalled_at_7_16_percent_gap_after_300_seconds
+  action: cap_equity_direct_search_and_preserve_long_threshold_infeasibility_oracle_budget
+  objectives_changed: false
+  constraints_changed: false
+  candidate_universes_changed: false
+  retention_rates_changed: false
+  near_optimal_gap_changed: false
+
+post_plateau_search_hardening:
+  frozen_before_official_rerun: true
+  evidence_run: stage4_2c_certification_20260820T154032Z_4a3af066364c
+  observed_bottleneck: equity_high_need_zero_objective_oracle_explored_42_13_percent_in_1800_seconds_without_incumbent
+  action: retain_strict_threshold_row_but_guide_search_with_original_objective_and_objective_specific_heuristics
+  objectives_changed: false
+  constraints_changed: false
+  candidate_universes_changed: false
+  retention_rates_changed: false
+  near_optimal_gap_changed: false
+
+post_probe_backend_conclusion:
+  frozen_after_diagnostic_comparison: true
+  conclusion: high_need_threshold_remains_computationally_uncertified_on_available_hardware
+  guided_highs_300s_incumbent_count: 0
+  feasibility_highs_300s_incumbent_count: 0
+  cp_sat_300s_incumbent_count: 0
+  scip_900s_incumbent_count: 0
+  scip_900s_tree_explored_fraction: 0.7266
+  scip_900s_dual_bound: 12396.133466419949
+  frozen_threshold: 11667.182795656541
+  action: preserve_fail_closed_non_certification_and_skip_expansion_after_required_top3_failure
+  objectives_changed: false
+  constraints_changed: false
+  candidate_universes_changed: false
+  retention_rates_changed: false
+  near_optimal_gap_changed: false
+
+paths:
+  output_root: outputs/model_v1/10_stage4_2_certification
+  report_root: reports/model_v1/stage4_2_certification
+  lock: outputs/model_v1/.stage4_2_certification_writer.lock
+
+hardware:
+  profile: intel_core_ultra_7_258v_32gb_optional_cuda_gpu
+  highs_threads: 8
+  memory_limit_gb: 28
+  gpu_seed_search: true
+  allow_native_windows_parallel: true
+  native_windows_highs_threads: 4
+
+formulation:
+  one_link_pattern_formulation: true
+  min_sigungu_mode: continuous_auxiliary_with_threshold_oracle
+  min_sigungu_integer_scale: 1000000
+  integer_count_deviation_convex_hull: true
+  stage_specific_variables: true
+  preserve_candidate_universe: true
+  preserve_lexicographic_retention: true
+
+solver:
+  backend: direct_highspy
+  minimum_highs_version: 1.8.0
+  random_seed: 42
+  mip_heuristic_effort: 0.15
+  oracle_heuristic_effort: 0.02
+  oracle_heuristic_effort_by_objective:
+    min_sigungu_coverage: 0.02
+    high_need_population: 0.02
+    need_weighted: 0.02
+    total_population: 0.02
+    cost: 0.02
+  mip_max_start_nodes: 5000
+  default_time_limit_sec: 1800
+  log_to_console: true
+  write_mps: false
+  time_limit_sec:
+    common:
+      total_population: 600
+      need_weighted: 900
+      high_need_population: 1800
+      min_sigungu_coverage: 2400
+      cost: 2400
+    efficiency:
+      total_population: 300
+      need_weighted: 300
+      min_sigungu_coverage: 1800
+      cost: 2400
+    balanced:
+      need_weighted: 300
+      min_sigungu_coverage: 2400
+      total_population: 600
+      cost: 2400
+    equity:
+      min_sigungu_coverage: 300
+      high_need_population: 300
+      need_weighted: 300
+      cost: 600
+  extra_highs_options:
+    mip_pool_soft_limit: 20000
+    mip_pscost_minreliable: 4
+    mip_min_cliquetable_entries_for_parallelism: 10000
+
+gate:
+  near_optimal_relative_gap_max: 0.005
+  gap_threshold_must_not_be_relaxed: true
+  stop_scenario_on_uncertified_stage: false
+  fail_fast_after_required_top3_uncertified: true
+  run_equity_even_if_eb_uncertified: true
+  require_equity_certification: true
+  require_candidate_expansion_certification: true
+
+oracle:
+  enabled: true
+  guided_objective_enabled: false
+  stop_at_objective_target: false
+  max_rounds: 4
+  default_time_limit_sec: 1800
+  time_limit_sec:
+    total_population: 900
+    need_weighted: 1200
+    high_need_population: 1800
+    min_sigungu_coverage: 2400
+    cost: 2400
+    equity.min_sigungu_coverage: 3600
+    equity.cost: 3000
+
+seed_search:
+  single_swap_enabled: true
+  cpu_max_rounds: 4
+  max_rounds: 25
+
+candidate_expansion:
+  enabled: true
+  candidate_sets: [top3, top5, coarse_pareto]
+  reference_candidate_set: top3
+  max_unique_coverage_loss_fraction: 0.01
+  max_need_weighted_loss_fraction: 0.01
+  max_high_need_loss_fraction: 0.02
+  max_min_sigungu_coverage_loss: 0.02
+  min_coverage_cluster_jaccard: 0.50

@@ -1,0 +1,179 @@
+version: MEDIROAD_MODEL_V1_STAGE2B_HARDENING_20260818
+status: preregistered_before_diagnostic_and_final_hardening_runs
+target_definition: cross_year_reproducible_coarse_service_season_prior_not_patient_demand_or_exact_schedule
+random_seed: 20260818
+stage_scope: Stage2B_hardening_and_Stage2_integrated_validation_only
+stage3_started: false
+
+paths:
+  frozen_canonical_master: derived/mediroad_admin_dong_master_v6_final.csv
+  road_integrated_master: derived/mediroad_admin_dong_master_v6_road_integrated.csv
+  stage1_config: configs/model_v1/stage1_features.yaml
+  stage1_need_scores: outputs/model_v1/03_ablation/stage1_primary_need_score.csv
+  service_bundle_config: configs/model_v1/service_bundles.yaml
+  temporal_baseline_config: configs/model_v1/temporal_model.yaml
+  stage2a_bundle_scores: outputs/model_v1/04_specialty/recommended_bundle_gap_scores.parquet
+  stage2a_specialty_scores: outputs/model_v1/04_specialty/specialty_gap_scores.parquet
+  baseline_stage2b_season_scores: outputs/model_v1/04_temporal/region_bundle_season_scores.parquet
+  nhis_normalized_panel: outputs/model_v1/04_temporal/nhis_policy_sigungu_service_month.parquet
+  working_day_calendar: outputs/model_v1/04_temporal/official_working_day_calendar.csv
+  baseline_stage2_metadata: outputs/model_v1/04_stage2/STAGE2_RUN_METADATA.json
+  baseline_stage2_inventory: outputs/model_v1/04_stage2/STAGE2_ARTIFACT_INVENTORY.csv
+  output_dir: outputs/model_v1/05_stage2b_hardening
+  report_dir: reports/model_v1/stage2b_hardening
+  final_report: reports/model_v1/06_stage2b_hardening.md
+
+frozen_contract:
+  canonical_master_sha256: 3bcff13063c741edf1492df22b774bd6d37424d729c15423e31ba8ea576adf7a
+  road_integrated_master_sha256: faed8c4d024dfff89602eebf3229c1eaeea955ca2d14fb88f0e2cbc4f76e078a
+  stage1_config_sha256: 3fe95a55e47b80ff1b0cb8c4819f21ed0dc855dcd696486e10e29025294def8a
+  stage1_need_scores_sha256: 6302576c3f15d7ae0d18ecb5d4ad39a35f3fe33cd5ef3b20d1608b2a112d6ab2
+  stage2a_bundle_scores_sha256: 43cddc29bbfc9f82c0031e35042c8e90fd8ef35e31c276611f56d0db5d65d2fa
+  stage2a_specialty_scores_sha256: 78157d7f0fad75b7b714c84ca31b2c5bce977555f154d5ce21e8ddc4296f44aa
+  nhis_normalized_panel_sha256: 003a444f40a4bf8f5639c456f771f1c8fb064dfd19f899dd75d761763563143d
+  working_day_calendar_sha256: 68b793d16481deb33d5f021a3450e81f108013b8cb3941cc3b096de956f6b655
+  baseline_stage2_run_id: stage2_20260817T215115Z_e6f9ee122b9e
+  baseline_stage2_metadata_sha256: 38d8f64d5360939ec812d438b2720930cd2923e8f115d5b947b48e8440d6b94f
+  baseline_stage2_inventory_sha256: 7d128b13fdb72884b1457f3725606fb8cd3cac744eeb95b9888d2ad273ead250
+  baseline_stage2_hard_gate_passed: 72
+  baseline_stage2_hard_gate_total: 72
+  baseline_stage2_tests_passed: 53
+
+analysis_contract:
+  observed_years: [2022, 2023]
+  expected_policy_sigungu: 11
+  expected_services: 16
+  expected_bundles: 5
+  expected_months_per_year: 12
+  expected_panel_rows: 4224
+  independent_unit: policy_sigungu_x_bundle
+  independent_n: 55
+  broadcast_delivery_rows_are_not_independent: true
+  expected_admin_dongs: 153
+  expected_release_rows: 765
+  primary_measure: visits_per_working_day
+  policy_sigungu_aggregation: equal_sigungu_weight
+  primary_season_definition: meteorological
+  season_order: [spring, summer, autumn, winter]
+  season_definitions:
+    meteorological:
+      spring: [3, 4, 5]
+      summer: [6, 7, 8]
+      autumn: [9, 10, 11]
+      winter: [12, 1, 2]
+    calendar_quarters:
+      spring: [1, 2, 3]
+      summer: [4, 5, 6]
+      autumn: [7, 8, 9]
+      winter: [10, 11, 12]
+    shifted_plus_one_month:
+      spring: [4, 5, 6]
+      summer: [7, 8, 9]
+      autumn: [10, 11, 12]
+      winter: [1, 2, 3]
+  consensus_methods: [mean_rank, median_rank, borda_rank, worst_year_rank]
+  release_consensus_method: median_rank_then_pooled_score_then_fixed_season_order
+  positive_strength_scenarios: [0.25, 0.50, 0.75, 1.00]
+  bounded_temporal_lambdas: [0.10, 0.20, 0.30]
+  permutation_method: independently_shuffle_month_labels_within_sigungu_year_service
+  block_bootstrap_method: resample_11_policy_sigungu_with_complete_month_and_service_sequences
+  no_pooling_in_cross_year_fit: true
+
+release_rules:
+  numerical_tolerance: 0.000000000001
+  valid_release_types: [STRONG_SINGLE, ROBUST_PAIR, NO_STRONG_PREFERENCE]
+  valid_confidence: [HIGH, MODERATE, LOW]
+  strong_single:
+    cross_year_top1_agreement_min: 1.0
+    bidirectional_primary_in_holdout_top2_min: 1.0
+    bidirectional_selected_pair_holdout_top2_coverage_min: 1.0
+    heldout_normalized_regret_max: 0.20
+    pooled_normalized_top1_margin_min: 0.10
+    year_normalized_top1_margin_min: 0.05
+    bootstrap_primary_probability_min: 0.65
+    lomo_primary_retention_min: 0.85
+    loso_primary_retention_min: 0.80
+    working_day_primary_retention_min: 1.0
+    boundary_primary_retention_min: 0.67
+    permutation_margin_percentile_min: 0.90
+  robust_pair:
+    bidirectional_primary_in_holdout_top2_min: 1.0
+    bidirectional_selected_pair_holdout_top2_coverage_min: 1.0
+    year_top2_jaccard_min: 0.50
+    heldout_normalized_regret_max: 0.35
+    pooled_normalized_top1_margin_min: 0.02
+    bootstrap_pair_coverage_probability_min: 0.80
+    lomo_top2_retention_min: 0.75
+    loso_top2_retention_min: 0.75
+    working_day_top2_retention_min: 0.75
+    boundary_top2_retention_min: 0.67
+    permutation_margin_percentile_min: 0.50
+  abstention:
+    release_type: NO_STRONG_PREFERENCE
+    confidence: LOW
+    primary_season_must_be_null: true
+    fallback_season_must_be_null: true
+  exact_month_must_be_null: true
+  exact_date_must_be_null: true
+  climate_role: historical_operational_risk_advisory_not_primary_selector
+  static_gtfs_role: spatial_context_not_temporal_selector
+  temporal_spatial_resolution: province_common_bundle_season_with_sigungu_block_validation
+
+integration_contract:
+  primary_architecture: hierarchical_WHAT_then_WHEN
+  joint_model_status: diagnostic_only
+  bounded_model_status: diagnostic_only
+  specialty_intrusion:
+    hierarchical_top1_retention_min: 1.0
+    hierarchical_rank_spearman_min: 1.0
+    bounded_lambda_010_top1_retention_min: 0.90
+    bounded_lambda_020_top1_retention_min: 0.80
+    bounded_lambda_030_top1_retention_min: 0.70
+  no_admin_specific_temporal_signal_without_admin_temporal_evidence: true
+  stage3_interface_only: true
+  stage3_execution_forbidden: true
+
+quality_gates:
+  cross_year_direction_count: 2
+  cross_year_bundle_rows: 10
+  lomo_expected_month_removals_per_year: 12
+  lomo_expected_bundle_runs: 120
+  loso_expected_sigungu_removals: 11
+  loso_expected_bundle_runs: 55
+  expected_season_count: 4
+  bootstrap_n_must_equal_requested: true
+  bootstrap_valid_fraction_min: 1.0
+  permutation_n_must_equal_requested: true
+  output_keys_unique: true
+  finite_required_metrics: true
+  all_bundles_explicitly_released_or_abstained: true
+  fallback_distinct_when_present_fraction_min: 1.0
+  exact_month_nonnull_max: 0
+  exact_date_nonnull_max: 0
+  frozen_artifact_mutation_count_max: 0
+  artifact_sha_mismatch_count_max: 0
+  stage3_started_must_equal: false
+  representative_statistical_n_must_equal: 55
+  tests_must_pass: true
+
+advisory_thresholds:
+  cross_year_top1_agreement_min: 0.60
+  cross_year_primary_in_holdout_top2_min: 0.80
+  median_normalized_regret_max: 0.20
+  lomo_primary_retention_min: 0.80
+  loso_primary_retention_min: 0.80
+  bootstrap_primary_probability_min: 0.60
+  permutation_margin_percentile_min: 0.90
+  need_bundle_abs_spearman_review: 0.85
+  joint_model_bundle_rank_spearman_review: 0.90
+
+execution:
+  diagnostic_bootstrap: 200
+  diagnostic_permutations: 500
+  final_bootstrap: 1000
+  final_permutations: 5000
+  jobs: 8
+  atomic_metadata_last: true
+  single_writer_lock: true
+  png_dpi: 300
+  html_self_contained: true

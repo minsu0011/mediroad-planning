@@ -1,0 +1,105 @@
+version: MEDIROAD_STAGE4_2E_EQUITY_TAIL_EXACT_CERTIFICATION_V1
+mode: official
+stage5_started: false
+
+paths:
+  output_root: outputs/model_v1/10_stage4_2e_equity_tail_certification
+  report_root: reports/model_v1/stage4_2e_equity_tail_certification
+  lock: outputs/model_v1/.stage4_2e_equity_tail_certification_writer.lock
+
+hardware:
+  profile: intel_core_ultra_7_258v_32gb_rtx_3080ti
+  solver_threads: 8
+  memory_soft_limit_gb: 27
+  process_priority: above_normal
+
+# Freeze the same Top3 Equity policy model. Stage4.2E only completes the two
+# remaining lexicographic tail stages after the certified Stage4.2D high-need
+# floor; it may not change a threshold, objective, retention, or candidate.
+contract:
+  candidate_set: top3
+  visit_count: 20
+  candidate_count: 452
+  pattern_count: 5242
+  preserve_stage42c_objectives: true
+  preserve_stage42c_constraints: true
+  preserve_candidate_universe: true
+  candidate_expansion_enabled: false
+  relative_gap: 0.005
+  total_population_floor: 167282.84413449097
+  min_sigungu_floor: 0.525217
+  high_need_incumbent: 11609.13711010601
+  high_need_retention: 0.99
+  high_need_floor: 11493.045739004951
+  need_weighted_retention: 0.99
+
+stage42d_parent:
+  run_id: stage4_2d_equity_20260821T014952Z_cc9fd641ddf0
+  artifact_sha256:
+    CURRENT_STAGE4_2D_EQUITY_CERTIFICATION_RUN.json: 4bb004c172098534afecddf11a2cd45657a6cbec4f857ce5fcfb8f26b5e251b0
+    ARTIFACT_INVENTORY.csv: a9a9e0ad28c53a254424b2e17c129c85430e84039b52f3919f1b484a88ab712b
+    01_min_threshold_oracle/certificate.json: c00f4f3b870a665ec855c69679aabddf1b9e262bf68690f1b12ccbb8e5b0635b
+    02_high_threshold_oracle/certificate.json: 550980f4700d247990021170b32aff459775a8cdf1360fc0eefe04940cbfd8f1
+    03_final_incumbent/plan__equity_front_stage_seed.csv: 9c421c274e65429f830245bedb17c17fdb6d3db2bbcf355b644fb4dc218878a9
+    04_quality_and_provenance/quality_gate.json: 1f81f5d21b5574e2bc8ebef8836d48c88ba66ba77d7c52816239382be3c9ef51
+
+# Both stages are rebuilt and solved afresh. Historical bounds are retained as
+# compatibility diagnostics only; the official PASS must be certified by a
+# fresh incumbent and fresh HiGHS bound from this run.
+stage42c_bound_evidence:
+  run_id: stage4_2c_certification_20260820T151657Z_56c5f1bad35c
+  artifact_sha256:
+    ARTIFACT_INVENTORY.csv: c1198cd711730871538ff536614f724ea64ee2634ced21d1aa9d144b00a74362
+    metadata.json: d420d1d90439b22d473c4bc164dbf6198fd9f03331465db6c9cbc2e32adfc259
+    quality_gate.json: 447546723cfe6615f4d89b21cf104beeb4037ca239b59173cdfa92491f70946a
+    candidate_sets/top3/plan__equity.csv: d7e3f47b38adf36f02439afa5ddc250c15d7c6fd22f4e6221b1897ffdb916826
+    candidate_sets/top3/stages__equity.json: b7b20f362b29889b7efe0f2074d9ccfc293d1a58f34b709bb008c57d18653079
+  need_weighted_incumbent: 104231.18010692896
+  need_weighted_best_bound: 104752.01728095711
+  need_weighted_retained_floor: 103188.86830585968
+  cost_incumbent: 654.5488005454546
+  cost_best_bound: 651.8916526882051
+
+solver:
+  backend: direct_highspy
+  required_highspy_version: 1.15.1
+  threads: 8
+  parallel: true
+  presolve: true
+  fresh_need_solve_required: true
+  fresh_cost_solve_required: true
+  allow_threshold_relaxation: false
+  allow_objective_change: false
+  allow_candidate_change: false
+  allow_inherited_bounds_for_certification: false
+  relative_gap: 0.005
+  time_limit_sec:
+    need_weighted: 900
+    cost: 1200
+  random_seed:
+    need_weighted: 5098
+    cost: 6107
+  heuristic_effort: 0.10
+  mip_max_start_nodes: 30000
+  log_to_console: true
+  extra_highs_options:
+    mip_pool_soft_limit: 30000
+    mip_pscost_minreliable: 4
+    mip_min_cliquetable_entries_for_parallelism: 10000
+    mip_detect_symmetry: true
+
+gate:
+  gap_threshold_must_not_be_relaxed: true
+  require_fresh_need_solve: true
+  require_fresh_cost_solve: true
+  require_subset_and_sha_for_inherited_bounds: true
+  require_fresh_incumbent_and_bound_each_stage: true
+  historical_bounds_diagnostic_only: true
+  require_need_weighted_certification: true
+  require_cost_certification: true
+  write_current_only_on_full_pass: true
+  promotable_scope: TOP3_EQUITY_FULL_ONLY
+  candidate_expansion_certified: false
+  stage4_full_computational_complete: false
+  operational_final: false
+  stage5_release_allowed: false

@@ -1,0 +1,97 @@
+version: MEDIROAD_STAGE4_V1
+seed: 42
+
+project_contract:
+  objective: >-
+    Select provisional region-catchment-service packages for 20 mobile-clinic visits
+    while preserving Structural Need, unique beneficiary coverage, Specialty Gap,
+    geographic equity, and operational uncertainty as distinct evidence layers.
+  not_patient_prediction: true
+  temporal_role: advisory_only_no_strong_preference
+  exact_month_date_forbidden: true
+  field_validation_required_before_final: true
+
+runtime:
+  jobs: 8
+  solver: cp-sat
+  max_time_per_stage_sec: 20
+  frontier_time_per_stage_sec: 15
+  log_solver_progress: false
+  max_memory_soft_gb: 24
+
+candidate_reduction:
+  top_n_per_admin: 3
+  max_candidates: 600
+  pareto_tier_max: 3
+  require_all_admins: true
+  one_per_coverage_cluster: true
+  max_visits_per_admin: 2
+  max_visits_per_sigungu: 4
+
+network_validation:
+  enabled: true
+  required_for_official: true
+  candidate_scope: admin_top3
+  threshold_minutes: [10, 15, 20]
+  max_snap_distance_m: 5000
+  graph_bbox_buffer_deg: 0.15
+  batch_size: 24
+  pbf_relative_path: 14_v6_external_data/road_network/raw/chungcheong-non-military_20260817.osm.pbf
+  pbf_sha256: cfcf02addc9a0453f2e0fcffd3b27e027d131cbb3b2c63dd68e4313325724d2e
+  cache_graph: true
+  euclidean_reference_matrix_id: hard_5000m
+
+optimization:
+  visit_count: 20
+  population_integer_scale: 100
+  need_integer_scale: 100
+  objective_retention:
+    total_population: 0.99
+    need_weighted: 0.99
+    high_need: 0.99
+    min_sigungu_coverage: 1.0
+  balanced_min_efficiency_fraction: 0.80
+  equity_min_efficiency_fraction: 0.60
+  high_need_quantile: 0.80
+  exclude_known_overlap: false
+  known_overlap_penalty: 1000
+  travel_penalty_scale: 1
+  allow_unknown_travel: true
+  cluster_constraint: true
+  scenarios: [efficiency, balanced, equity]
+  catchment_scenarios: [hard_5000m, hard_3000m]
+  include_best_network_catchment: true
+  min_visits_per_sigungu_equity_hard: 0
+
+bundle_assignment:
+  enabled: true
+  value_column_priority:
+    - bundle_gap_weighted_exposure
+    - mean_bundle_gap_weighted_exposure
+    - specialty_gap
+  min_per_bundle: {}
+  max_per_bundle: {}
+  default_min: 1
+  default_max: 20
+
+robustness:
+  selection_frequency_core: 0.67
+  field_validation_queue_min: 30
+  field_validation_queue_max: 60
+  frontier_visits: [5, 10, 15, 20, 25, 30, 40]
+  frontier_scenarios: [efficiency, balanced]
+
+paths:
+  stage3_root: outputs/model_v1/07_stage3
+  stage4_root: outputs/model_v1/08_stage4
+  report_root: reports/model_v1/stage4
+  lock: outputs/model_v1/.stage4_writer.lock
+
+column_aliases:
+  elderly_population:
+    - elderly65_calibrated_population
+    - elderly65_population
+    - elderly65_calibrated
+    - calibrated_elderly65
+    - elderly_population
+    - population65

@@ -1,0 +1,262 @@
+version: MEDIROAD_MODEL_V1_STAGE2A_20260818
+target_definition: regional_specialty_service_gap_not_patient_demand
+primary_formula: weighted_additive
+primary_scaler: winsorized_percentile
+random_seed: 42
+
+source:
+  road_master: derived/mediroad_admin_dong_master_v6_road_integrated.csv
+  stage1_score: outputs/model_v1/03_ablation/stage1_primary_need_score.csv
+  hira_specialty_pivot: 01_public_sources/v2_full/derived/chungbuk_hira_specialty_pivot_by_facility_202606.csv
+  hira_facility_admin_join: 03_spatial_join/chungbuk_hira_facilities_by_admin_dong_202606.csv
+  healthmap_holdout: 14_v5_additions/healthmap/clean_validation/healthmap_policy_sigungu_core_external_validation_2023_v5_2.csv
+  legacy_gap_baseline: derived/mediroad_specialty_gap_v0.csv
+  expected_admin_dongs: 153
+  expected_policy_sigungu: 11
+  frozen_canonical_sha256: 3bcff13063c741edf1492df22b774bd6d37424d729c15423e31ba8ea576adf7a
+  road_master_sha256: faed8c4d024dfff89602eebf3229c1eaeea955ca2d14fb88f0e2cbc4f76e078a
+  stage1_config_sha256: 3fe95a55e47b80ff1b0cb8c4819f21ed0dc855dcd696486e10e29025294def8a
+
+model_contract:
+  use_stage1_need_as_specialty_input: false
+  use_legacy_v0_as_input: false
+  general_access_handled_by_stage1: true
+  specialty_access_definition: log1p_specialty_time_minus_log1p_general_medical_time
+  supply_definition: empirical_bayes_specialty_share_within_local_medical_supply
+  health_context_definition: service_context_minus_within_region_service_mean_fitted_on_11_sigungu
+  age_structure_definition: service_age_fit_minus_within_region_service_mean
+  public_support_definition: log1p_support_time_minus_log1p_general_medical_time
+  health_context_effective_n: 11
+  dental_role: adjunct_service_not_one_of_focused_15_physician_specialties
+  emergency_role: referral_gap_only_not_mobile_emergency_treatment
+
+component_weights:
+  health_context_gap: 0.20
+  age_structure_gap: 0.10
+  specialty_supply_gap: 0.30
+  specialty_excess_access_gap: 0.30
+  public_support_gap: 0.10
+
+supply:
+  facility_share_prior_strength: 5.0
+  specialist_share_prior_strength: 10.0
+  prior_sensitivity_grid:
+    facility_share_prior_strength: [2.0, 5.0, 10.0, 20.0]
+    specialist_share_prior_strength: [5.0, 10.0, 20.0, 40.0]
+  zero_total_supply_composition_gap: 0.5
+  local_facility_share_weight: 0.45
+  local_specialist_share_weight: 0.30
+  sigungu_specialist_rate_weight: 0.25
+
+scalers:
+  winsorized_percentile:
+    lower_quantile: 0.01
+    upper_quantile: 0.99
+  rank_percentile: {}
+  robust_minmax:
+    lower_quantile: 0.01
+    upper_quantile: 0.99
+  robust_z:
+    clip_lower: -3.0
+    clip_upper: 3.0
+
+formula_families:
+  weighted_additive:
+    description: transparent compensatory weighted mean
+  bounded_geometric:
+    floor: 5.0
+    description: low components cannot be fully compensated
+  minimum_bottleneck_hybrid:
+    additive_share: 0.70
+    minimum_share: 0.30
+    description: additive score mixed with the weakest supported component
+  rank_composite:
+    description: within-service component percentile ranks followed by weighted mean
+
+services:
+  - service_id: internal_medicine
+    name_ko: 내과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_hypertension_doctor_dx_pct, chs65p_diabetes_doctor_dx_pct]
+    health_evidence: direct_chronic_context_not_disease_demand
+    age_features: [population_75plus_ratio]
+    public_support_column: nearest_chronic_disease_management_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: recommended_component
+  - service_id: family_medicine
+    name_ko: 가정의학과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_subjective_health_not_good_pct, chs65p_unmet_medical_need_among_needing_pct, chs65p_medical_environment_dissatisfaction_pct]
+    health_evidence: general_health_and_care_access_context
+    age_features: [population_65plus_ratio, single_households_65plus_per_population_65plus]
+    public_support_column: nearest_primary_care_home_visit_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: recommended_component
+  - service_id: orthopedics
+    name_ko: 정형외과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_fall_experience_pct, chs65p_mobility_any_problem_pct, chs65p_usual_activity_any_problem_pct]
+    health_evidence: functional_and_fall_context
+    age_features: [population_75plus_ratio]
+    public_support_column: nearest_rehabilitation_medical_institution_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: recommended_component
+  - service_id: rehabilitation
+    name_ko: 재활의학과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_mobility_any_problem_pct, chs65p_usual_activity_any_problem_pct, chs65p_fall_experience_pct]
+    health_evidence: functional_limitation_context
+    age_features: [population_75plus_ratio, population_85plus_ratio]
+    public_support_column: nearest_rehabilitation_medical_institution_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: recommended_component
+  - service_id: neurology
+    name_ko: 신경과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_mobility_any_problem_pct, chs65p_usual_activity_any_problem_pct, chs65p_subjective_health_poor_pct]
+    health_evidence: nonspecific_neurologic_function_context
+    age_features: [population_75plus_ratio, population_85plus_ratio]
+    public_support_column: nearest_dementia_home_visit_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: recommended_component
+  - service_id: ophthalmology
+    name_ko: 안과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_diabetes_doctor_dx_pct]
+    health_evidence: diabetes_complication_context_not_eye_disease_prevalence
+    age_features: [population_75plus_ratio, population_85plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: recommended_component
+  - service_id: obstetrics_gynecology
+    name_ko: 산부인과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_unmet_medical_need_among_needing_pct, chs65p_medical_environment_dissatisfaction_pct]
+    health_evidence: generic_care_access_context_no_womens_health_burden_measure
+    age_features: [population_female_65plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: recommended_component_with_staffing_confirmation
+  - service_id: psychiatry
+    name_ko: 정신건강의학과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_depressive_experience_pct, chs65p_high_stress_pct]
+    health_evidence: direct_psychosocial_context_not_diagnosis
+    age_features: [population_65plus_ratio, single_households_65plus_per_population_65plus]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: recommended_component_with_privacy_conditions
+  - service_id: emergency_medicine
+    name_ko: 응급의학과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_accident_poisoning_treatment_pct, chs65p_fall_experience_pct]
+    health_evidence: injury_context_not_emergency_demand
+    age_features: [population_75plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: referral_gap_only_not_mobile_emergency_treatment
+  - service_id: otolaryngology
+    name_ko: 이비인후과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_subjective_health_not_good_pct]
+    health_evidence: generic_health_context_no_ent_burden_measure
+    age_features: [population_75plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: recommended_component
+  - service_id: general_surgery
+    name_ko: 외과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_accident_poisoning_treatment_pct, chs65p_subjective_health_poor_pct]
+    health_evidence: generic_injury_and_health_context
+    age_features: [population_75plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: screening_and_referral_component
+  - service_id: neurosurgery
+    name_ko: 신경외과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_mobility_any_problem_pct, chs65p_fall_experience_pct]
+    health_evidence: functional_and_fall_context_not_neurosurgical_demand
+    age_features: [population_75plus_ratio]
+    public_support_column: nearest_rehabilitation_medical_institution_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: screening_and_referral_component
+  - service_id: anesthesiology_pain
+    name_ko: 마취통증의학과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_mobility_any_problem_pct, chs65p_usual_activity_any_problem_pct]
+    health_evidence: functional_limitation_context_not_pain_prevalence
+    age_features: [population_75plus_ratio]
+    public_support_column: nearest_rehabilitation_medical_institution_drive_min_proxy
+    public_support_evidence: hira_straight_distance_drive_proxy
+    mobile_service_role: recommended_component_with_equipment_confirmation
+  - service_id: urology
+    name_ko: 비뇨의학과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_unmet_medical_need_among_needing_pct, chs65p_medical_environment_dissatisfaction_pct]
+    health_evidence: generic_care_access_context_no_urologic_burden_measure
+    age_features: [population_75plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: recommended_component_with_staffing_confirmation
+  - service_id: dermatology
+    name_ko: 피부과
+    service_type: focused_physician_specialty
+    health_features: [chs65p_unmet_medical_need_among_needing_pct]
+    health_evidence: generic_care_access_context_no_skin_burden_measure
+    age_features: [population_65plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: recommended_component
+  - service_id: dental
+    name_ko: 치과
+    service_type: adjunct_dental_service
+    health_features: [chs65p_unmet_medical_need_among_needing_pct, chs65p_diabetes_doctor_dx_pct]
+    health_evidence: generic_access_and_complication_context_no_oral_burden_measure
+    age_features: [population_75plus_ratio]
+    public_support_column: osm_nearest_public_health_drive_min_v6
+    public_support_evidence: osm_static_free_flow_public_health_proxy
+    mobile_service_role: adjunct_recommended_component
+
+quality_gates:
+  expected_service_count: 16
+  expected_focused_physician_specialty_count: 15
+  expected_primary_focused_rows: 2295
+  expected_adjunct_dental_rows: 153
+  expected_specialty_rows: 2448
+  expected_bundle_count: 5
+  expected_bundle_rows: 765
+  expected_full_stage2a_atlas_features: 160
+  expected_discriminating_atlas_features: 120
+  expected_admin_atlas_pairwise_n: 153
+  score_missing_count_max: 0
+  component_missing_count_max: 0
+  exact_duplicate_service_score_pairs_max: 0
+  unexplained_abs_rho_098_pairs_max: 0
+  primary_weight_max: 0.35
+  contribution_p95_share_max: 0.70
+  feature_ablation_coverage: 1.0
+  expected_direct_source_service_instances: 70
+  component_ablation_coverage: 1.0
+  default_feature_median_spearman_min: 0.95
+  default_feature_median_top20_in_top30_min: 0.90
+  source_feature_to_component_neutral_delta_ratio_max: 1.0
+  formula_median_spearman_min: 0.75
+  formula_median_top20_in_top30_min: 0.70
+  within_sigungu_bundle_axis_auc_min: 0.58
+  within_sigungu_bundle_block_contrast_min: 0.05
+  bootstrap_replicates_min: 1000
+  bootstrap_metric_valid_fraction_min: 1.0
+  health_context_abs_rho_095_pairs_max: 0
+  healthmap_directional_concordance_min: 0.50
+  canonical_sha_unchanged: true
+  cross_bundle_abs_rho_median_max: 0.65
+  cross_bundle_abs_rho_080_rate_max: 0.10
+  cross_bundle_abs_rho_095_pairs_max: 0
+  stage1_need_abs_rho_median_max: 0.70
+  stage1_need_abs_rho_max: 0.85
+  alpha_grid_specialty_spearman_min: 0.95
+  alpha_grid_top20_jaccard_median_min: 0.80
+  alpha_grid_top20_jaccard_min: 0.60
+  alpha_grid_within_region_top3_retention_min: 0.90
