@@ -70,6 +70,8 @@ python run_model_v1.py --package-root data/local/mediroad-v6 --bootstrap 1000 --
 
 `run_model_v1.py`는 기존 Stage1 필요도 파이프라인을 실행합니다. `--package-root` 아래에 원본 master·자료 감사표·도로 보고서와 `configs/model_v1/stage1_features.yaml`을 준비합니다. 결과는 해당 패키지의 `outputs/model_v1`과 `reports/model_v1`에 저장하며 Stage2–4를 자동 실행하지 않습니다.
 
-단계별 실행 명령과 필요한 모듈 경로는 [실행 안내](docs/wiki/How-to-Run.md)에 구분했습니다.
+단계별 실행 명령과 필요한 모듈 경로는 [실행 안내](https://github.com/minsu0011/mediroad-planning/wiki/How-to-Run)에 구분했습니다.
 
-[개발 과정](docs/wiki/Development-Journey.md) · [알고리즘별 역할](docs/wiki/Model-Evolution.md) · [병목과 해결](docs/wiki/Bottlenecks-and-Solutions.md) · [결과 해석](docs/wiki/Validation-and-Results.md)
+[개발 과정](https://github.com/minsu0011/mediroad-planning/wiki/Development-Journey) · [알고리즘별 역할](https://github.com/minsu0011/mediroad-planning/wiki/Model-Evolution) · [병목과 해결](https://github.com/minsu0011/mediroad-planning/wiki/Bottlenecks-and-Solutions) · [결과 해석](https://github.com/minsu0011/mediroad-planning/wiki/Validation-and-Results)
+
+[Wiki 전체 보기](https://github.com/minsu0011/mediroad-planning/wiki) · [저장소 내 문서 사본](docs/wiki/Home.md)
